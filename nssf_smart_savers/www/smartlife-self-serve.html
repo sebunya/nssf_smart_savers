@@ -1,331 +1,660 @@
 {% extends "templates/web.html" %}
-
 {% block page_content %}
-<div class="smartlife-demo-notice">
+
+<!-- Demo notice (always visible) -->
+<div class="sl-demo-notice">
   ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
 </div>
 
-<div class="smartlife-self-serve-wrapper">
-  <div class="smartlife-stepper" id="sl-stepper">
-    <div class="sl-step active" data-step="1">1. Saver Type</div>
-    <div class="sl-step" data-step="2">2. Goal</div>
-    <div class="sl-step" data-step="3">3. Plan Details</div>
-    <div class="sl-step" data-step="4">4. Projection</div>
-    <div class="sl-step" data-step="5">5. Your Plan</div>
-  </div>
+<div class="sl-self-serve" id="sl-self-serve">
 
-  <!-- Step 1: Saver Type -->
-  <div class="sl-step-content active" id="sl-step-1">
-    <h2>Who are you saving as?</h2>
-    <div class="smartlife-card-grid">
-      {% for seg in segments %}
-      <div class="smartlife-card sl-segment-card"
-           data-value="{{ seg.key }}"
-           onclick="SmartLife.selectSegment('{{ seg.key }}', this)">
-        <span class="smartlife-card-icon">{{ seg.icon }}</span>
-        <span class="smartlife-card-label">{{ seg.label }}</span>
-      </div>
-      {% endfor %}
+  <!-- Stepper bar -->
+  <div class="sl-stepper" role="navigation" aria-label="Progress">
+    <div class="sl-stepper-step sl-active" data-step="1">
+      <span class="sl-stepper-num">1</span>
+      <span class="sl-stepper-label">Saver Type</span>
     </div>
-    <div class="sl-nav">
-      <button class="smartlife-btn-primary" onclick="SmartLife.nextStep()" id="sl-step1-next" disabled>Next</button>
+    <div class="sl-stepper-step" data-step="2">
+      <span class="sl-stepper-num">2</span>
+      <span class="sl-stepper-label">Goal</span>
     </div>
-  </div>
-
-  <!-- Step 2: Goal -->
-  <div class="sl-step-content" id="sl-step-2">
-    <h2>What are you saving for?</h2>
-    <div class="smartlife-goal-grid">
-      {% for goal in goals %}
-      <div class="smartlife-goal-card sl-goal-card"
-           data-value="{{ goal.key }}"
-           onclick="SmartLife.selectGoal('{{ goal.key }}', this)">
-        <span class="smartlife-goal-icon">{{ goal.icon }}</span>
-        <span class="smartlife-goal-label">{{ goal.label }}</span>
-      </div>
-      {% endfor %}
+    <div class="sl-stepper-step" data-step="3">
+      <span class="sl-stepper-num">3</span>
+      <span class="sl-stepper-label">Plan</span>
     </div>
-    <div class="sl-nav">
-      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
-      <button class="smartlife-btn-primary" onclick="SmartLife.nextStep()" id="sl-step2-next" disabled>Next</button>
+    <div class="sl-stepper-step" data-step="4">
+      <span class="sl-stepper-num">4</span>
+      <span class="sl-stepper-label">Projection</span>
+    </div>
+    <div class="sl-stepper-step" data-step="5">
+      <span class="sl-stepper-num">5</span>
+      <span class="sl-stepper-label">Your Plan</span>
     </div>
   </div>
 
-  <!-- Step 3: Plan Details -->
-  <div class="sl-step-content" id="sl-step-3">
-    <h2>Set up your plan</h2>
-    <div class="smartlife-form">
-      <div class="sl-field">
-        <label>Goal nickname (optional)</label>
-        <input type="text" id="sl-goal-nickname" placeholder="e.g. My Dream Home" maxlength="100"
-               oninput="SmartLife.checkPII(this)">
-      </div>
-      <div class="sl-field">
-        <label>Target amount (UGX)</label>
-        <input type="number" id="sl-target-amount" placeholder="e.g. 10000000" min="0"
-               oninput="SmartLife.validateForm()">
-      </div>
-      <div class="sl-field">
-        <label>Savings period (years)</label>
-        <input type="number" id="sl-years" placeholder="e.g. 5" min="1" max="40"
-               oninput="SmartLife.validateForm()">
-      </div>
-      <div class="sl-field">
-        <label>Savings frequency</label>
-        <select id="sl-frequency" onchange="SmartLife.validateForm()">
-          <option value="">Select frequency</option>
-          {% for freq in frequencies %}
-          <option value="{{ freq.key }}">{{ freq.label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="sl-field">
-        <label>Contribution amount (UGX per period, min 5,000)</label>
-        <input type="number" id="sl-contribution" placeholder="e.g. 50000" min="5000"
-               oninput="SmartLife.validateForm()">
-      </div>
-      <div class="sl-field">
-        <label>Initial deposit (UGX, optional)</label>
-        <input type="number" id="sl-initial-deposit" placeholder="e.g. 100000" min="0"
-               oninput="SmartLife.validateForm()">
-      </div>
-      <div class="sl-field">
-        <label>Source of income</label>
-        <select id="sl-source-of-income">
-          <option value="">Select source</option>
-          {% for src in sources_of_income %}
-          <option value="{{ src }}">{{ src }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="sl-field">
-        <label>Industry</label>
-        <select id="sl-industry">
-          <option value="">Select industry</option>
-          {% for ind in industries %}
-          <option value="{{ ind }}">{{ ind }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="sl-field">
-        <label>Country</label>
-        <select id="sl-country">
-          {% for c in countries %}
-          <option value="{{ c }}" {% if c == "Uganda" %}selected{% endif %}>{{ c }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="sl-pii-warning" id="sl-pii-warning" style="display:none">
-        ⚠️ Demo environment: Do not enter real NIN, phone numbers, or personal contact details.
-      </div>
-    </div>
-    <div class="sl-nav">
-      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
-      <button class="smartlife-btn-primary" onclick="SmartLife.runProjection()" id="sl-step3-next">Calculate</button>
-    </div>
-  </div>
+  <!-- STEP 1: Saver Type - HARDCODED (not Jinja loop) - eliminates ZWJ encoding root cause -->
+  <section class="sl-step sl-step-active" id="sl-step-1" aria-label="Step 1: Who are you saving as?">
+    <h2 class="sl-step-title">Who are you saving as?</h2>
+    <p class="sl-step-sub">Select the option that best describes you.</p>
 
-  <!-- Step 4: Projection -->
-  <div class="sl-step-content" id="sl-step-4">
-    <h2>Your Savings Projection</h2>
-    <div class="smartlife-projection-disclaimer">
+    <fieldset class="sl-radio-group" id="sl-saver-fieldset">
+      <legend class="sr-only">Saver type</legend>
+
+      <label class="sl-choice-card" for="saver-existing">
+        <input type="radio" name="saver_type" id="saver-existing" value="existing_member" class="sl-choice-radio">
+        <span class="sl-choice-icon">🏦</span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Existing NSSF Member</span>
+          <span class="sl-choice-desc">I already have an NSSF account and want to add voluntary SmartLife savings.</span>
+        </span>
+      </label>
+
+      <label class="sl-choice-card" for="saver-new">
+        <input type="radio" name="saver_type" id="saver-new" value="new_voluntary" class="sl-choice-radio">
+        <span class="sl-choice-icon">✨</span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">New Saver / Non-Member</span>
+          <span class="sl-choice-desc">I do not currently save with NSSF but want to start building a savings habit.</span>
+        </span>
+      </label>
+
+      <label class="sl-choice-card" for="saver-diaspora">
+        <input type="radio" name="saver_type" id="saver-diaspora" value="diaspora" class="sl-choice-radio">
+        <span class="sl-choice-icon">🌍</span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Diaspora Saver</span>
+          <span class="sl-choice-desc">I live outside Uganda and want to save consistently towards a goal back home.</span>
+        </span>
+      </label>
+
+      <label class="sl-choice-card" for="saver-informal">
+        <input type="radio" name="saver_type" id="saver-informal" value="informal_sector" class="sl-choice-radio">
+        <span class="sl-choice-icon">🛒</span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Informal Sector Saver</span>
+          <span class="sl-choice-desc">My income is flexible or irregular, so I need a plan that fits how I earn.</span>
+        </span>
+      </label>
+
+      <label class="sl-choice-card" for="saver-staff">
+        <input type="radio" name="saver_type" id="saver-staff" value="staff_assisted_prospect" class="sl-choice-radio">
+        <span class="sl-choice-icon">🤝</span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Staff-Assisted Prospect</span>
+          <span class="sl-choice-desc">I am being guided by staff or registering through an assisted session.</span>
+        </span>
+      </label>
+    </fieldset>
+
+    <div class="sl-step-actions">
+      <p class="sl-hint" id="sl-step1-hint">Please select a saver type to continue.</p>
+      <button type="button" class="sl-btn-primary" id="sl-step1-next" disabled
+              onclick="SLSelfServe.goTo(2)">
+        Next: Choose Your Goal →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Goal -->
+  <section class="sl-step" id="sl-step-2" aria-label="Step 2: Savings goal" hidden>
+    <h2 class="sl-step-title">What are you saving for?</h2>
+    <p class="sl-step-sub">Choose your main savings goal.</p>
+
+    <fieldset class="sl-goal-group" id="sl-goal-fieldset">
+      <legend class="sr-only">Savings goal</legend>
+
+      <label class="sl-goal-card" for="goal-education">
+        <input type="radio" name="savings_goal" id="goal-education" value="education" class="sl-choice-radio">
+        <span class="sl-goal-icon">🎓</span>
+        <span class="sl-goal-label">Education</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-homeownership">
+        <input type="radio" name="savings_goal" id="goal-homeownership" value="homeownership" class="sl-choice-radio">
+        <span class="sl-goal-icon">🏠</span>
+        <span class="sl-goal-label">Home Ownership</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-land">
+        <input type="radio" name="savings_goal" id="goal-land" value="land" class="sl-choice-radio">
+        <span class="sl-goal-icon">🌱</span>
+        <span class="sl-goal-label">Land</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-car">
+        <input type="radio" name="savings_goal" id="goal-car" value="car" class="sl-choice-radio">
+        <span class="sl-goal-icon">🚗</span>
+        <span class="sl-goal-label">Car</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-business">
+        <input type="radio" name="savings_goal" id="goal-business" value="business_capital" class="sl-choice-radio">
+        <span class="sl-goal-icon">📈</span>
+        <span class="sl-goal-label">Business Capital</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-emergency">
+        <input type="radio" name="savings_goal" id="goal-emergency" value="emergencies" class="sl-choice-radio">
+        <span class="sl-goal-icon">🛡️</span>
+        <span class="sl-goal-label">Emergency Fund</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-wedding">
+        <input type="radio" name="savings_goal" id="goal-wedding" value="wedding" class="sl-choice-radio">
+        <span class="sl-goal-icon">💍</span>
+        <span class="sl-goal-label">Wedding / Marriage</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-retirement">
+        <input type="radio" name="savings_goal" id="goal-retirement" value="retirement" class="sl-choice-radio">
+        <span class="sl-goal-icon">🌅</span>
+        <span class="sl-goal-label">Retirement</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-independence">
+        <input type="radio" name="savings_goal" id="goal-independence" value="financial_independence" class="sl-choice-radio">
+        <span class="sl-goal-icon">🦁</span>
+        <span class="sl-goal-label">Financial Independence</span>
+      </label>
+
+      <label class="sl-goal-card" for="goal-other">
+        <input type="radio" name="savings_goal" id="goal-other" value="other" class="sl-choice-radio">
+        <span class="sl-goal-icon">⭐</span>
+        <span class="sl-goal-label">Other Goal</span>
+      </label>
+    </fieldset>
+
+    <div class="sl-step-actions">
+      <button type="button" class="sl-btn-secondary" onclick="SLSelfServe.goTo(1)">← Back</button>
+      <button type="button" class="sl-btn-primary" id="sl-step2-next" disabled
+              onclick="SLSelfServe.goTo(3)">
+        Next: Set Up Plan →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 3: Plan Details -->
+  <section class="sl-step" id="sl-step-3" aria-label="Step 3: Plan details" hidden>
+    <h2 class="sl-step-title">Set up your plan</h2>
+    <div class="sl-projection-disclaimer">
       Projection is indicative for demo purposes only. Actual returns may vary.
     </div>
-    <div class="smartlife-projection-result" id="sl-projection-result">
-      <div class="sl-result-card">
-        <div class="sl-result-label">Total Contributions</div>
-        <div class="sl-result-value" id="sl-total-contributions">—</div>
-      </div>
-      <div class="sl-result-card sl-result-card-highlight">
-        <div class="sl-result-label">Projected Value</div>
-        <div class="sl-result-value" id="sl-projected-value">—</div>
-      </div>
-      <div class="sl-result-card">
-        <div class="sl-result-label">Indicative Return</div>
-        <div class="sl-result-value" id="sl-indicative-return">—</div>
-      </div>
-    </div>
-    <div class="sl-chart-wrapper">
-      <canvas id="sl-projection-chart" width="600" height="300"></canvas>
-    </div>
-    <div class="sl-nav">
-      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
-      <button class="smartlife-btn-primary" onclick="SmartLife.getPlan()">Get My Plan</button>
-    </div>
-  </div>
 
-  <!-- Step 5: Personalised Plan -->
-  <div class="sl-step-content" id="sl-step-5">
-    <h2>Your Personalised Plan</h2>
+    <div class="sl-form">
+      <div class="sl-form-row">
+        <label for="sl-target-amount" class="sl-label">Target amount (UGX)</label>
+        <input type="number" id="sl-target-amount" class="sl-input" placeholder="e.g. 10,000,000" min="0" max="999999999">
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-years" class="sl-label">Savings period (years)</label>
+        <input type="number" id="sl-years" class="sl-input" placeholder="e.g. 5" min="1" max="40" value="5">
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-frequency" class="sl-label">How often will you save?</label>
+        <select id="sl-frequency" class="sl-select" required>
+          <option value="">Select frequency</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="semi-annually">Semi-Annually</option>
+          <option value="annually">Annually</option>
+        </select>
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-contribution" class="sl-label">Contribution per period (UGX, min 5,000)</label>
+        <input type="number" id="sl-contribution" class="sl-input" placeholder="e.g. 50,000" min="5000" value="">
+        <span class="sl-input-hint">Minimum UGX 5,000 per contribution</span>
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-initial-deposit" class="sl-label">Initial deposit (UGX, optional)</label>
+        <input type="number" id="sl-initial-deposit" class="sl-input" placeholder="e.g. 100,000" min="0" value="0">
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-source-income" class="sl-label">Source of income</label>
+        <select id="sl-source-income" class="sl-select">
+          <option value="">Select (optional)</option>
+          <option value="salary">Salary / Employment</option>
+          <option value="business">Business / Self-employed</option>
+          <option value="agriculture">Agriculture</option>
+          <option value="remittances">Remittances</option>
+          <option value="pension">Pension</option>
+          <option value="investments">Investments</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="sl-form-row">
+        <label for="sl-country" class="sl-label">Country of residence</label>
+        <select id="sl-country" class="sl-select">
+          <option value="Uganda" selected>Uganda</option>
+          <option value="Kenya">Kenya</option>
+          <option value="Tanzania">Tanzania</option>
+          <option value="Rwanda">Rwanda</option>
+          <option value="UK">United Kingdom</option>
+          <option value="USA">United States</option>
+          <option value="Canada">Canada</option>
+          <option value="Australia">Australia</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="sl-pii-alert" id="sl-pii-alert" style="display:none">
+        ⚠️ Demo environment: Do not enter real NIN, phone numbers, or personal identifiers.
+      </div>
+    </div>
+
+    <div class="sl-step-actions">
+      <button type="button" class="sl-btn-secondary" onclick="SLSelfServe.goTo(2)">← Back</button>
+      <button type="button" class="sl-btn-primary" id="sl-step3-next" onclick="SLSelfServe.runProjection()">
+        Calculate My Projection →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 4: Projection -->
+  <section class="sl-step" id="sl-step-4" aria-label="Step 4: Your projection" hidden>
+    <h2 class="sl-step-title">Your Savings Projection</h2>
+    <div class="sl-projection-disclaimer">
+      Projection is indicative for demo purposes only. Actual returns may vary.
+    </div>
+
+    <div class="sl-projection-loading" id="sl-projection-loading" style="display:none">
+      <div class="sl-spinner"></div>
+      <p>Calculating your projection...</p>
+    </div>
+
+    <div class="sl-projection-results" id="sl-projection-results">
+      <div class="sl-result-cards">
+        <div class="sl-result-card">
+          <div class="sl-result-label">Total Contributions</div>
+          <div class="sl-result-value" id="sl-total-contributions">—</div>
+        </div>
+        <div class="sl-result-card sl-result-featured">
+          <div class="sl-result-label">Projected Value</div>
+          <div class="sl-result-value" id="sl-projected-value">—</div>
+          <div class="sl-result-note">at 10% indicative annual return</div>
+        </div>
+        <div class="sl-result-card">
+          <div class="sl-result-label">Indicative Return</div>
+          <div class="sl-result-value" id="sl-indicative-return">—</div>
+        </div>
+      </div>
+
+      <div class="sl-projection-nudge" id="sl-projection-nudge"></div>
+
+      <div class="sl-frequency-compare" id="sl-frequency-compare" style="display:none">
+        <h3>Compare frequencies</h3>
+        <table class="sl-compare-table">
+          <thead>
+            <tr><th>Frequency</th><th>Per Period</th><th>Projected Value</th></tr>
+          </thead>
+          <tbody id="sl-compare-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sl-step-actions">
+      <button type="button" class="sl-btn-secondary" onclick="SLSelfServe.goTo(3)">← Back</button>
+      <button type="button" class="sl-btn-primary" onclick="SLSelfServe.getPlan()">
+        Get My Personalised Plan →
+      </button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Personalised Plan -->
+  <section class="sl-step" id="sl-step-5" aria-label="Step 5: Your plan" hidden>
+    <h2 class="sl-step-title">Your Personalised Plan</h2>
+
     <div class="sl-plan-card" id="sl-plan-card">
       <div class="sl-plan-hero" id="sl-plan-hero"></div>
-      <div class="sl-plan-goal" id="sl-plan-goal"></div>
+      <div class="sl-plan-goal-copy" id="sl-plan-goal-copy"></div>
       <div class="sl-plan-rhythm" id="sl-plan-rhythm"></div>
       <div class="sl-plan-nba" id="sl-plan-nba"></div>
     </div>
-    <div class="sl-plan-actions" id="sl-plan-actions">
-      <a href="/smartlife-checkout-demo" class="smartlife-btn-primary" id="sl-checkout-btn">
-        Start Saving Today
+
+    <div class="sl-plan-summary" id="sl-plan-summary">
+      <h3>Plan Summary</h3>
+      <div class="sl-summary-row"><span>Saver type:</span><span id="sum-saver-type">—</span></div>
+      <div class="sl-summary-row"><span>Goal:</span><span id="sum-goal">—</span></div>
+      <div class="sl-summary-row"><span>Frequency:</span><span id="sum-frequency">—</span></div>
+      <div class="sl-summary-row"><span>Contribution:</span><span id="sum-contribution">—</span></div>
+      <div class="sl-summary-row"><span>Period:</span><span id="sum-period">—</span></div>
+      <div class="sl-summary-row sl-summary-featured"><span>Projected value:</span><span id="sum-projected">—</span></div>
+    </div>
+
+    <div class="sl-plan-actions">
+      <a href="/smartlife-checkout-demo" class="sl-btn-primary" id="sl-checkout-cta">
+        Continue to Checkout →
       </a>
-      <a href="/smartlife-staff-assist" class="smartlife-btn-secondary">
+      <a href="/smartlife-staff-assist" class="sl-btn-secondary">
         Get Staff Help
       </a>
     </div>
-    <div class="sl-nav">
-      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
+
+    <div class="sl-step-actions">
+      <button type="button" class="sl-btn-secondary" onclick="SLSelfServe.goTo(4)">← Back</button>
     </div>
-  </div>
-</div>
+  </section>
 
+</div><!-- /.sl-self-serve -->
+
+<!-- Page-specific JavaScript -->
 <script>
-window.SmartLife = window.SmartLife || {};
-SmartLife._state = { segment: '', goal: '', step: 1 };
+(function() {
+  'use strict';
 
-SmartLife.selectSegment = function(val, el) {
-  SmartLife._state.segment = val;
-  document.querySelectorAll('.sl-segment-card').forEach(function(c) { c.classList.remove('selected'); });
-  el.classList.add('selected');
-  document.getElementById('sl-step1-next').disabled = false;
-  if (window.SmartLifeAnalytics) SmartLifeAnalytics.segmentSelected(val);
-};
+  console.info('[SmartLife] Self-serve initialised');
 
-SmartLife.selectGoal = function(val, el) {
-  SmartLife._state.goal = val;
-  document.querySelectorAll('.sl-goal-card').forEach(function(c) { c.classList.remove('selected'); });
-  el.classList.add('selected');
-  document.getElementById('sl-step2-next').disabled = false;
-  if (window.SmartLifeAnalytics) SmartLifeAnalytics.goalSelected(val, SmartLife._state.segment);
-};
+  // State
+  var state = {
+    step: 1,
+    saverType: '',
+    goal: '',
+    frequency: '',
+    contribution: 0,
+    initialDeposit: 0,
+    years: 5,
+    targetAmount: 0,
+    projectionData: null,
+    planData: null
+  };
 
-SmartLife.checkPII = function(el) {
-  var val = el.value || '';
-  var piiWarning = document.getElementById('sl-pii-warning');
-  var ninPat = /^[A-Z]{2}\d{7}[A-Z]{2}$/i;
-  var phonePat = /^(\+?256|0)[7][0-9]{8}$/;
-  if (ninPat.test(val.trim()) || phonePat.test(val.replace(/[\s\-()]/g, ''))) {
-    piiWarning.style.display = 'block';
-    el.value = '';
-  } else {
-    piiWarning.style.display = 'none';
-  }
-};
+  // Safe element getter
+  function el(id) { return document.getElementById(id); }
+  function els(sel) { return document.querySelectorAll(sel); }
 
-SmartLife.validateForm = function() {
-  var contrib = parseFloat(document.getElementById('sl-contribution').value) || 0;
-  var years = parseInt(document.getElementById('sl-years').value) || 0;
-  var freq = document.getElementById('sl-frequency').value;
-  var btn = document.getElementById('sl-step3-next');
-  if (btn) btn.disabled = !(contrib >= 5000 && years >= 1 && freq);
-};
+  // Goal labels for display
+  var GOAL_LABELS = {
+    education: 'Education',
+    homeownership: 'Home Ownership',
+    land: 'Land',
+    car: 'Car',
+    business_capital: 'Business Capital',
+    emergencies: 'Emergency Fund',
+    wedding: 'Wedding / Marriage',
+    retirement: 'Retirement',
+    financial_independence: 'Financial Independence',
+    other: 'Other Goal'
+  };
 
-SmartLife.runProjection = function() {
-  var contrib = document.getElementById('sl-contribution').value;
-  var initial = document.getElementById('sl-initial-deposit').value || '0';
-  var freq = document.getElementById('sl-frequency').value;
-  var years = document.getElementById('sl-years').value;
-  SmartLife.nextStep();
-  fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + initial +
-    '&periodic_contribution=' + contrib + '&frequency=' + freq + '&years=' + years)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var msg = data.message || data;
-      document.getElementById('sl-total-contributions').textContent = 'UGX ' + Math.round(msg.total_contributions || 0).toLocaleString();
-      document.getElementById('sl-projected-value').textContent = 'UGX ' + Math.round(msg.projected_value || 0).toLocaleString();
-      document.getElementById('sl-indicative-return').textContent = 'UGX ' + Math.round(msg.indicative_return || 0).toLocaleString();
-      SmartLife._projectionData = msg;
-      if (window.SmartLifeAnalytics) SmartLifeAnalytics.projectionViewed({ frequency: freq, period_band: SmartLife.periodBand(years) });
-    })
-    .catch(function(e) { console.error('Projection error', e); });
-};
+  var SAVER_LABELS = {
+    existing_member: 'Existing NSSF Member',
+    new_voluntary: 'New Saver / Non-Member',
+    diaspora: 'Diaspora Saver',
+    informal_sector: 'Informal Sector Saver',
+    staff_assisted_prospect: 'Staff-Assisted Prospect'
+  };
 
-SmartLife.periodBand = function(years) {
-  years = parseInt(years) || 0;
-  if (years <= 1) return '1y';
-  if (years <= 3) return '1-3y';
-  if (years <= 5) return '3-5y';
-  if (years <= 10) return '5-10y';
-  return '10y+';
-};
+  var FREQ_LABELS = {
+    daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+    quarterly: 'Quarterly', 'semi-annually': 'Semi-Annually', annually: 'Annually'
+  };
 
-SmartLife.getPlan = function() {
-  var segment = SmartLife._state.segment || 'new_voluntary';
-  var goal = SmartLife._state.goal || 'other';
-  var target = document.getElementById('sl-target-amount').value || '0';
-  var years = document.getElementById('sl-years').value || '1';
-  var freq = document.getElementById('sl-frequency').value || 'monthly';
-  var initial = document.getElementById('sl-initial-deposit').value || '0';
-  SmartLife.nextStep();
-  fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?segment=' + segment +
-    '&goal=' + goal + '&target_amount=' + target + '&years=' + years +
-    '&frequency=' + freq + '&initial_deposit=' + initial)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var plan = data.message || data;
-      document.getElementById('sl-plan-hero').textContent = plan.hero_copy || '';
-      document.getElementById('sl-plan-goal').textContent = plan.goal_copy || '';
-      document.getElementById('sl-plan-rhythm').textContent = 'Rhythm: ' + (plan.recommended_rhythm || '');
-      document.getElementById('sl-plan-nba').textContent = 'Next: ' + (plan.next_best_action || '');
-      var cta = document.getElementById('sl-checkout-btn');
-      if (cta && plan.cta_label) cta.textContent = plan.cta_label;
-      if (cta && plan.cta_color) cta.style.background = plan.cta_color;
-      // Pass plan data to checkout
-      if (cta) {
-        var initial = document.getElementById('sl-initial-deposit').value || '0';
-        cta.href = '/smartlife-checkout-demo?goal=' + encodeURIComponent(goal) +
-          '&frequency=' + encodeURIComponent(freq) +
-          '&amount=' + encodeURIComponent(initial || document.getElementById('sl-contribution').value || '50000');
+  // Step navigation
+  window.SLSelfServe = {
+
+    goTo: function(n) {
+      // Validate before advancing
+      if (n > state.step && !this.validateStep(state.step)) return;
+
+      var prev = state.step;
+      // Hide previous step
+      var prevEl = el('sl-step-' + prev);
+      if (prevEl) { prevEl.hidden = true; prevEl.classList.remove('sl-step-active'); }
+      var prevInd = document.querySelector('.sl-stepper-step[data-step="' + prev + '"]');
+      if (prevInd) { prevInd.classList.remove('sl-active'); prevInd.classList.add('sl-done'); }
+
+      // Show new step
+      state.step = n;
+      var newEl = el('sl-step-' + n);
+      if (newEl) { newEl.hidden = false; newEl.classList.add('sl-step-active'); }
+      var newInd = document.querySelector('.sl-stepper-step[data-step="' + n + '"]');
+      if (newInd) { newInd.classList.add('sl-active'); newInd.classList.remove('sl-done'); }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (window.SmartLifeAnalytics) {
+        SmartLifeAnalytics.push('sl_step_viewed', { step_name: 'step_' + n, journey_type: 'self_serve' });
       }
-      SmartLife._planData = plan;
-      if (window.SmartLifeAnalytics) SmartLifeAnalytics.planGenerated({ segment: segment, goal_category: goal, frequency: freq });
-    })
-    .catch(function(e) { console.error('Plan error', e); });
-};
+    },
 
-SmartLife.nextStep = function() {
-  var current = SmartLife._state.step;
-  var next = current + 1;
-  document.getElementById('sl-step-' + current).classList.remove('active');
-  document.getElementById('sl-step-' + next) && document.getElementById('sl-step-' + next).classList.add('active');
-  document.querySelector('[data-step="' + current + '"]') && document.querySelector('[data-step="' + current + '"]').classList.remove('active');
-  document.querySelector('[data-step="' + next + '"]') && document.querySelector('[data-step="' + next + '"]').classList.add('active');
-  SmartLife._state.step = next;
-  window.scrollTo(0, 0);
-};
+    validateStep: function(step) {
+      if (step === 1 && !state.saverType) {
+        var hint = el('sl-step1-hint');
+        if (hint) { hint.style.color = '#dc2626'; hint.textContent = 'Please select a saver type to continue.'; }
+        return false;
+      }
+      if (step === 2 && !state.goal) {
+        return false;
+      }
+      return true;
+    },
 
-SmartLife.prevStep = function() {
-  var current = SmartLife._state.step;
-  var prev = current - 1;
-  if (prev < 1) return;
-  document.getElementById('sl-step-' + current).classList.remove('active');
-  document.getElementById('sl-step-' + prev).classList.add('active');
-  document.querySelector('[data-step="' + current + '"]').classList.remove('active');
-  document.querySelector('[data-step="' + prev + '"]').classList.add('active');
-  SmartLife._state.step = prev;
-  window.scrollTo(0, 0);
-};
+    runProjection: function() {
+      var contrib = parseFloat(el('sl-contribution') && el('sl-contribution').value) || 0;
+      var initial = parseFloat(el('sl-initial-deposit') && el('sl-initial-deposit').value) || 0;
+      var freq = el('sl-frequency') && el('sl-frequency').value;
+      var years = parseInt(el('sl-years') && el('sl-years').value) || 5;
 
-window.addEventListener('beforeunload', function() {
-  if (SmartLife._state.step > 1 && window.SmartLifeAnalytics) {
-    SmartLifeAnalytics.dropoffDetected('step_' + SmartLife._state.step, {
-      segment: SmartLife._state.segment,
-      goal: SmartLife._state.goal,
-      journey_type: 'self_serve'
+      if (contrib < 5000) {
+        alert('Minimum contribution is UGX 5,000 per period.');
+        return;
+      }
+      if (!freq) {
+        alert('Please select a contribution frequency.');
+        return;
+      }
+
+      state.contribution = contrib;
+      state.initialDeposit = initial;
+      state.frequency = freq;
+      state.years = years;
+      state.targetAmount = parseFloat(el('sl-target-amount') && el('sl-target-amount').value) || 0;
+
+      this.goTo(4);
+
+      var loading = el('sl-projection-loading');
+      var results = el('sl-projection-results');
+      if (loading) loading.style.display = 'block';
+      if (results) results.style.opacity = '0.3';
+
+      fetch('/api/method/nssf_smart_savers.api.get_projection?' + new URLSearchParams({
+        initial_deposit: initial,
+        periodic_contribution: contrib,
+        frequency: freq,
+        years: years
+      }).toString())
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var msg = data.message || data;
+          state.projectionData = msg;
+          if (loading) loading.style.display = 'none';
+          if (results) results.style.opacity = '1';
+
+          var ugx = function(v) { return 'UGX ' + Math.round(v || 0).toLocaleString(); };
+          if (el('sl-total-contributions')) el('sl-total-contributions').textContent = ugx(msg.total_contributions);
+          if (el('sl-projected-value')) el('sl-projected-value').textContent = ugx(msg.projected_value);
+          if (el('sl-indicative-return')) el('sl-indicative-return').textContent = ugx(msg.indicative_return);
+
+          var nudge = el('sl-projection-nudge');
+          if (nudge) {
+            var pct = msg.total_contributions > 0 ? Math.round((msg.indicative_return / msg.total_contributions) * 100) : 0;
+            nudge.textContent = '💡 Your savings could grow by ' + pct + '% over ' + years + ' year' + (years > 1 ? 's' : '') + ' at 10% indicative annual return.';
+          }
+
+          if (window.SmartLifeAnalytics) {
+            SmartLifeAnalytics.projectionViewed({ frequency: freq, period_band: SLSelfServe.periodBand(years) });
+          }
+        })
+        .catch(function(e) {
+          if (loading) loading.style.display = 'none';
+          if (results) results.style.opacity = '1';
+          console.error('[SmartLife] Projection error', e);
+        });
+    },
+
+    getPlan: function() {
+      this.goTo(5);
+
+      // Update summary
+      if (el('sum-saver-type')) el('sum-saver-type').textContent = SAVER_LABELS[state.saverType] || state.saverType;
+      if (el('sum-goal')) el('sum-goal').textContent = GOAL_LABELS[state.goal] || state.goal;
+      if (el('sum-frequency')) el('sum-frequency').textContent = FREQ_LABELS[state.frequency] || state.frequency;
+      if (el('sum-contribution')) el('sum-contribution').textContent = 'UGX ' + Math.round(state.contribution).toLocaleString() + ' per period';
+      if (el('sum-period')) el('sum-period').textContent = state.years + ' year' + (state.years > 1 ? 's' : '');
+      if (state.projectionData && el('sum-projected')) {
+        el('sum-projected').textContent = 'UGX ' + Math.round(state.projectionData.projected_value || 0).toLocaleString();
+      }
+
+      // Update checkout CTA URL
+      var ctaEl = el('sl-checkout-cta');
+      if (ctaEl) {
+        ctaEl.href = '/smartlife-checkout-demo?' + new URLSearchParams({
+          goal: state.goal,
+          frequency: state.frequency,
+          amount: Math.round(state.contribution),
+          period: state.years,
+          saver_type: state.saverType,
+          projected: Math.round((state.projectionData && state.projectionData.projected_value) || 0)
+        }).toString();
+      }
+
+      // Fetch personalised plan
+      fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?' + new URLSearchParams({
+        segment: state.saverType,
+        goal: state.goal,
+        target_amount: state.targetAmount,
+        years: state.years,
+        frequency: state.frequency,
+        initial_deposit: state.initialDeposit
+      }).toString())
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var plan = data.message || data;
+          state.planData = plan;
+          if (el('sl-plan-hero')) el('sl-plan-hero').textContent = plan.hero_copy || '';
+          if (el('sl-plan-goal-copy')) el('sl-plan-goal-copy').textContent = plan.goal_copy || '';
+          if (el('sl-plan-rhythm')) el('sl-plan-rhythm').textContent = plan.recommended_rhythm || '';
+          if (el('sl-plan-nba')) {
+            el('sl-plan-nba').textContent = '→ ' + (plan.next_best_action || '');
+          }
+          if (window.SmartLifeAnalytics) {
+            SmartLifeAnalytics.planGenerated({ segment: state.saverType, goal_category: state.goal, frequency: state.frequency });
+          }
+        })
+        .catch(function(e) { console.error('[SmartLife] Plan error', e); });
+    },
+
+    periodBand: function(years) {
+      years = parseInt(years) || 0;
+      if (years <= 1) return '1y';
+      if (years <= 3) return '1-3y';
+      if (years <= 5) return '3-5y';
+      if (years <= 10) return '5-10y';
+      return '10y+';
+    }
+  };
+
+  // Wire up radio inputs - Step 1 (saver type)
+  function initSaverTypeRadios() {
+    var radios = els('input[name="saver_type"]');
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        state.saverType = this.value;
+        var nextBtn = el('sl-step1-next');
+        if (nextBtn) nextBtn.disabled = false;
+        var hint = el('sl-step1-hint');
+        if (hint) { hint.style.color = ''; hint.textContent = ''; }
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.segmentSelected(this.value);
+      });
     });
   }
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('segment')) {
-    SmartLife._state.segment = params.get('segment');
-    SmartLife.nextStep();
+  // Wire up radio inputs - Step 2 (goals)
+  function initGoalRadios() {
+    var radios = els('input[name="savings_goal"]');
+    radios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        state.goal = this.value;
+        var nextBtn = el('sl-step2-next');
+        if (nextBtn) nextBtn.disabled = false;
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.goalSelected(this.value, state.saverType);
+      });
+    });
   }
-  if (params.get('goal')) {
-    SmartLife._state.goal = params.get('goal');
+
+  // Wire Step 3 validation
+  function initPlanForm() {
+    var validateBtn = function() {
+      var contrib = parseFloat(el('sl-contribution') && el('sl-contribution').value) || 0;
+      var freq = el('sl-frequency') && el('sl-frequency').value;
+      var btn = el('sl-step3-next');
+      if (btn) btn.disabled = !(contrib >= 5000 && freq);
+    };
+
+    ['sl-contribution', 'sl-years', 'sl-target-amount', 'sl-initial-deposit'].forEach(function(id) {
+      var input = el(id);
+      if (input) input.addEventListener('input', validateBtn);
+    });
+    var freqSel = el('sl-frequency');
+    if (freqSel) freqSel.addEventListener('change', validateBtn);
+
+    // Disable step3 next initially
+    var btn = el('sl-step3-next');
+    if (btn) btn.disabled = true;
   }
-  if (window.SmartLifeAnalytics) {
-    SmartLifeAnalytics.demoView({ journey_type: 'self_serve', step_name: 'self_serve_start' });
+
+  // Handle ?segment= or ?goal= URL params (from landing page)
+  function handleURLParams() {
+    var params = new URLSearchParams(window.location.search);
+    var segParam = params.get('segment') || params.get('saver_type');
+    if (segParam) {
+      var matchingRadio = document.querySelector('input[name="saver_type"][value="' + segParam + '"]');
+      if (matchingRadio) {
+        matchingRadio.checked = true;
+        matchingRadio.dispatchEvent(new Event('change'));
+      }
+    }
+    var goalParam = params.get('goal');
+    if (goalParam) {
+      var matchingGoal = document.querySelector('input[name="savings_goal"][value="' + goalParam + '"]');
+      if (matchingGoal) {
+        matchingGoal.checked = true;
+        matchingGoal.dispatchEvent(new Event('change'));
+        state.goal = goalParam;
+      }
+    }
   }
-});
+
+  // Dropoff tracking
+  window.addEventListener('beforeunload', function() {
+    if (state.step > 1 && window.SmartLifeAnalytics) {
+      SmartLifeAnalytics.dropoffDetected('step_' + state.step, {
+        segment: state.saverType, goal: state.goal, journey_type: 'self_serve'
+      });
+    }
+  });
+
+  // Init on DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    var root = el('sl-self-serve');
+    if (!root) return; // Not on self-serve page
+
+    initSaverTypeRadios();
+    initGoalRadios();
+    initPlanForm();
+    handleURLParams();
+
+    if (window.SmartLifeAnalytics) {
+      SmartLifeAnalytics.demoView({ journey_type: 'self_serve', step_name: 'landing' });
+    }
+  });
+
+}());
 </script>
 {% endblock %}

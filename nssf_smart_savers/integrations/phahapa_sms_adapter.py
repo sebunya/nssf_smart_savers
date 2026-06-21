@@ -1,0 +1,64 @@
+"""
+SmartLife Flexi - Phahapa SMS Adapter
+Demo mode: logs messages without sending.
+To activate: set site_config phahapa_api_key, phahapa_sender_id, phahapa_mode=live.
+"""
+import frappe
+import json
+
+
+def get_phahapa_config():
+    return {
+        'mode': frappe.conf.get('phahapa_mode', 'demo'),
+        'api_key': frappe.conf.get('phahapa_api_key', ''),
+        'sender_id': frappe.conf.get('phahapa_sender_id', 'SmartLife'),
+        'base_url': frappe.conf.get('phahapa_base_url', 'https://api.phahapa.com'),
+    }
+
+
+def validate_no_pii(payload):
+    """Ensure SMS payload contains no real PII."""
+    from nssf_smart_savers.utils.privacy import is_pii_safe
+    for k, v in payload.items():
+        if k in ('phone', 'recipient'):
+            continue  # phone number is needed for SMS but must be demo-only
+        if not is_pii_safe(str(v)):
+            raise ValueError(f'SMS payload field {k} contains PII. Blocked.')
+    return True
+
+
+def build_sms_payload(recipient_demo_ref, message, sender_id=None):
+    """Build SMS payload. recipient_demo_ref is a demo reference, not a real phone."""
+    config = get_phahapa_config()
+    return {
+        'recipient': recipient_demo_ref,
+        'message': message[:160],
+        'sender_id': sender_id or config['sender_id'],
+        'mode': config['mode'],
+    }
+
+
+def send_demo_sms(recipient_demo_ref, message, event_type='demo_notification'):
+    """Log an SMS in demo mode. Never sends real SMS without live credentials."""
+    config = get_phahapa_config()
+    payload = build_sms_payload(recipient_demo_ref, message)
+
+    if config['mode'] != 'live':
+        # Log demo SMS event
+        try:
+            doc = frappe.get_doc({
+                'doctype': 'SmartLife Demo Notification',
+                'notification_type': 'SMS',
+                'channel': 'Phahapa SMS',
+                'event_trigger': event_type,
+                'template_name': 'demo_sms',
+                'rendered_body': message,
+                'status': 'Simulated',
+                'simulated': 1,
+            })
+            doc.insert(ignore_permissions=True)
+        except Exception as e:
+            frappe.log_error(str(e), 'SmartLife SMS Demo Log Error')
+        return {'status': 'simulated', 'demo': True, 'payload': payload}
+
+    raise NotImplementedError('Live SMS requires Phahapa credentials in site_config.')
