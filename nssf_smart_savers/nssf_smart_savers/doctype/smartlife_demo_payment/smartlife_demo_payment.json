@@ -9,13 +9,14 @@
   "track_changes": 1,
   "custom": 0,
   "field_order": [
-    "demo_lead", "amount", "frequency", "goal", "payment_status",
+    "naming_series", "demo_lead", "amount", "frequency", "goal", "payment_status",
     "payment_reference", "provider_mode", "provider_name",
     "initiated_at", "completed_at", "callback_received", "ipn_received",
     "verification_attempted", "failure_reason", "retry_count",
     "idempotency_key", "event_log", "is_demo"
   ],
   "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-PAY-.YYYY.-.####"},
     {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
     {"fieldname": "amount", "fieldtype": "Currency", "label": "Amount"},
     {"fieldname": "frequency", "fieldtype": "Data", "label": "Frequency"},

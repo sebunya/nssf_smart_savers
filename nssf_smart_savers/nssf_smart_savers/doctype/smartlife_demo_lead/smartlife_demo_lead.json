@@ -9,12 +9,13 @@
   "track_changes": 1,
   "custom": 0,
   "field_order": [
-    "segment", "goal", "goal_label", "target_amount", "years", "frequency",
+    "naming_series", "segment", "goal", "goal_label", "target_amount", "years", "frequency",
     "initial_deposit", "source_of_income", "industry", "country",
     "staff_assisted", "journey_type", "plan_generated", "payment_simulated",
     "dropoff_step", "lead_stage", "analytics_labels", "created_session_id", "demo_note"
   ],
   "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-LEAD-.YYYY.-.####"},
     {"fieldname": "segment", "fieldtype": "Data", "label": "Segment", "reqd": 1},
     {"fieldname": "goal", "fieldtype": "Data", "label": "Goal", "reqd": 1},
     {"fieldname": "goal_label", "fieldtype": "Data", "label": "Goal Label"},

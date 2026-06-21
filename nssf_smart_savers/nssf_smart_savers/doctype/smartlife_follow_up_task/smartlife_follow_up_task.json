@@ -9,10 +9,11 @@
   "track_changes": 1,
   "custom": 0,
   "field_order": [
-    "task_type", "demo_lead", "staff_session", "due_date", "assigned_to",
+    "naming_series", "task_type", "demo_lead", "staff_session", "due_date", "assigned_to",
     "priority", "status", "notes", "outcome", "is_demo"
   ],
   "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-TASK-.YYYY.-.####"},
     {"fieldname": "task_type", "fieldtype": "Select", "label": "Task Type", "options": "\nCall\nWhatsApp\nEmail\nWalk-in\nEscalate to Helpdesk"},
     {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
     {"fieldname": "staff_session", "fieldtype": "Link", "label": "Staff Session", "options": "SmartLife Staff Assist Session"},

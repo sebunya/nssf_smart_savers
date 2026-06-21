@@ -20,7 +20,10 @@ website_route_rules = [
 # Jinja
 # ----------
 jinja = {
-    "methods": "nssf_smart_savers.utils.jinja_methods",
+    "methods": [
+        "nssf_smart_savers.utils.jinja_methods.format_ugx",
+        "nssf_smart_savers.utils.jinja_methods.get_frequency_label",
+    ],
 }
 
 # Includes in <head>

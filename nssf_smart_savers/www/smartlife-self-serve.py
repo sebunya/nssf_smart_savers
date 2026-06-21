@@ -39,6 +39,7 @@ def get_context(context):
         {"key": "weekly", "label": "Weekly", "min": 5000},
         {"key": "monthly", "label": "Monthly", "min": 5000},
         {"key": "quarterly", "label": "Quarterly", "min": 5000},
+        {"key": "semi-annually", "label": "Semi-Annually", "min": 5000},
         {"key": "annually", "label": "Annually", "min": 5000},
     ]
     context.sources_of_income = [

@@ -38,5 +38,6 @@ def get_context(context):
         {"key": "weekly", "label": "Weekly"},
         {"key": "monthly", "label": "Monthly"},
         {"key": "quarterly", "label": "Quarterly"},
+        {"key": "semi-annually", "label": "Semi-Annually"},
         {"key": "annually", "label": "Annually"},
     ]

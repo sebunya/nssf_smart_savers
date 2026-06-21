@@ -9,13 +9,14 @@
   "track_changes": 1,
   "custom": 0,
   "field_order": [
-    "prospect_segment", "goal", "goal_clarity", "ability_to_save", "source_of_income",
+    "naming_series", "prospect_segment", "goal", "goal_clarity", "ability_to_save", "source_of_income",
     "industry", "country", "frequency", "initial_deposit_ready", "objection",
     "follow_up_channel", "staff_owner", "conversion_stage", "next_best_action",
     "recommended_pitch", "objection_script", "follow_up_checklist",
     "crm_stage_suggestion", "helpdesk_ticket_created", "session_notes", "is_demo"
   ],
   "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-STAFF-.YYYY.-.####"},
     {"fieldname": "prospect_segment", "fieldtype": "Data", "label": "Prospect Segment"},
     {"fieldname": "goal", "fieldtype": "Data", "label": "Goal"},
     {"fieldname": "goal_clarity", "fieldtype": "Select", "label": "Goal Clarity", "options": "\nClear\nPartial\nUnclear"},
