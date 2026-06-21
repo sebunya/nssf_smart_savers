@@ -4,61 +4,69 @@ set -euo pipefail
 SITE_NAME="${SITE_NAME:-nssf-smartlifeflexi.nile-gov-demo.com}"
 BENCH_PATH="${BENCH_PATH:-/home/frappe/frappe-bench}"
 APP_NAME="${APP_NAME:-nssf_smart_savers}"
+BASE_URL="https://${SITE_NAME}"
+PASS=0; FAIL=0
 
-echo "Running SmartLife Flexi smoke tests for $SITE_NAME"
+ok() { echo "✓ $1"; PASS=$((PASS+1)); }
+fail() { echo "✗ $1"; FAIL=$((FAIL+1)); }
+warn() { echo "⚠ $1"; }
 
+echo "=== SmartLife Flexi Smoke Tests ==="
+echo "Site: $BASE_URL"
+echo ""
+
+# 1. App installed
 cd "$BENCH_PATH"
+bench --site "$SITE_NAME" list-apps 2>/dev/null | grep -q "$APP_NAME" && ok "App $APP_NAME installed" || fail "App $APP_NAME NOT installed"
 
-echo "1. Checking installed apps..."
-bench --site "$SITE_NAME" list-apps | grep -q "$APP_NAME"
-echo "OK: $APP_NAME is installed"
+# Route checks
+check_route() {
+  local path="$1"; local label="$2"
+  local code=$(curl -o /dev/null -s -w "%{http_code}" "$BASE_URL$path")
+  [ "$code" = "200" ] && ok "GET $path -> 200" || fail "GET $path -> $code (expected 200)"
+}
 
-echo "2. Checking homepage..."
-curl -fsSI "https://$SITE_NAME" >/dev/null
-echo "OK: Homepage responds"
+check_route "/smartlife-flexi-demo" "Landing"
+check_route "/smartlife-self-serve" "Self-serve"
+check_route "/smartlife-staff-assist" "Staff assist"
+check_route "/smartlife-projection-demo" "Projection"
+check_route "/smartlife-checkout-demo" "Checkout"
+check_route "/smartlife-support-demo" "Support"
+check_route "/smartlife-thank-you" "Thank you"
+check_route "/helpdesk/home" "Helpdesk"
 
-echo "3. Checking /smartlife-flexi-demo -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-flexi-demo")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-flexi-demo -> 200" || { echo "FAIL: /smartlife-flexi-demo -> $HTTP_CODE"; exit 1; }
-
-echo "4. Checking /smartlife-self-serve -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-self-serve")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-self-serve -> 200" || { echo "FAIL: /smartlife-self-serve -> $HTTP_CODE"; exit 1; }
-
-echo "5. Checking /smartlife-staff-assist -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-staff-assist")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-staff-assist -> 200" || { echo "FAIL: /smartlife-staff-assist -> $HTTP_CODE"; exit 1; }
-
-echo "6. Checking /smartlife-projection-demo -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-projection-demo")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-projection-demo -> 200" || { echo "FAIL: /smartlife-projection-demo -> $HTTP_CODE"; exit 1; }
-
-echo "7. Checking /smartlife-checkout-demo -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-checkout-demo")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-checkout-demo -> 200" || { echo "FAIL: /smartlife-checkout-demo -> $HTTP_CODE"; exit 1; }
-
-echo "8. Checking /smartlife-support-demo -> 200..."
-HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "https://$SITE_NAME/smartlife-support-demo")
-[ "$HTTP_CODE" = "200" ] && echo "OK: /smartlife-support-demo -> 200" || { echo "FAIL: /smartlife-support-demo -> $HTTP_CODE"; exit 1; }
-
-echo "9. Checking demo safety notice text on landing..."
-PAGE_CONTENT=$(curl -s "https://$SITE_NAME/smartlife-flexi-demo")
-echo "$PAGE_CONTENT" | grep -q "Prototype environment" && echo "OK: Demo notice present on landing" || { echo "FAIL: Demo notice missing"; exit 1; }
-echo "$PAGE_CONTENT" | grep -q "real NSSF member data" && echo "OK: Demo safety text found" || { echo "FAIL: Demo safety text missing"; exit 1; }
-
-echo "10. Checking projection disclaimer on projection page..."
-PROJ_CONTENT=$(curl -s "https://$SITE_NAME/smartlife-projection-demo")
-echo "$PROJ_CONTENT" | grep -q "indicative for demo purposes" && echo "OK: Projection disclaimer present" || { echo "FAIL: Projection disclaimer missing"; exit 1; }
-
-echo "11. Checking GTM container ID..."
-HOME_CONTENT=$(curl -s "https://$SITE_NAME")
-echo "$HOME_CONTENT" | grep -q "GTM-PZRV3MQL" && echo "OK: GTM-PZRV3MQL present" || echo "NOTE: GTM-PZRV3MQL not found — ensure GTM snippet is in base template"
-
-echo "12. Checking Helpdesk..."
-curl -fsSI "https://$SITE_NAME/helpdesk/home" >/dev/null && echo "OK: Helpdesk responds" || echo "NOTE: Helpdesk not responding"
-
-echo "13. Checking Cloudflare..."
-curl -fsSI "https://$SITE_NAME" | grep -qi "server: cloudflare" && echo "OK: Cloudflare is active" || echo "NOTE: Cloudflare header not detected"
+# Content checks
+check_content() {
+  local path="$1"; local label="$2"; local pattern="$3"
+  local body=$(curl -s "$BASE_URL$path")
+  echo "$body" | grep -q "$pattern" && ok "$label: '$pattern'" || fail "$label: missing '$pattern'"
+}
 
 echo ""
-echo "Smoke tests completed successfully."
+echo "--- Content checks ---"
+check_content "/smartlife-flexi-demo" "Landing" "SmartLife Flexi Demo"
+check_content "/smartlife-flexi-demo" "Landing" "Prototype environment"
+check_content "/smartlife-self-serve" "Self-serve" "Who are you saving as"
+check_content "/smartlife-self-serve" "Self-serve" "Existing NSSF Member"
+check_content "/smartlife-self-serve" "Self-serve" "New Saver"
+check_content "/smartlife-self-serve" "Self-serve" "Diaspora"
+check_content "/smartlife-self-serve" "Self-serve" "Informal"
+check_content "/smartlife-self-serve" "Self-serve" "semi-annually"
+check_content "/smartlife-self-serve" "Self-serve" "Do not enter real"
+check_content "/smartlife-staff-assist" "Staff assist" "Staff-Guided Session"
+check_content "/smartlife-staff-assist" "Staff assist" "Prospect Segment"
+check_content "/smartlife-staff-assist" "Staff assist" "Savings Goal"
+check_content "/smartlife-staff-assist" "Staff assist" "Generate"
+check_content "/smartlife-projection-demo" "Projection" "Savings Projection Calculator"
+check_content "/smartlife-projection-demo" "Projection" "indicative"
+check_content "/smartlife-projection-demo" "Projection" "semi-annually"
+check_content "/smartlife-checkout-demo" "Checkout" "Prototype environment"
+check_content "/smartlife-thank-you" "Thank-you" "Thank"
+
+# GTM check (warn only)
+GTM_BODY=$(curl -s "$BASE_URL/smartlife-flexi-demo")
+echo "$GTM_BODY" | grep -q "GTM-PZRV3MQL" && ok "GTM-PZRV3MQL present" || warn "GTM-PZRV3MQL not found in landing HTML"
+
+echo ""
+echo "=== Results: $PASS passed, $FAIL failed ==="
+[ "$FAIL" -eq 0 ] && echo "ALL SMOKE TESTS PASSED" || { echo "SMOKE TESTS FAILED"; exit 1; }

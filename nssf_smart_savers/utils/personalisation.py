@@ -12,7 +12,7 @@ SEGMENT_PROFILES = {
         "rhythm": "Align with your salary date for effortless saving.",
     },
     "new_voluntary": {
-        "label": "New Voluntary Saver",
+        "label": "New Saver / Non-Member",
         "hero": "Start your savings journey today — no employer required.",
         "cta_color": "#1a5c38",
         "recommended_frequency": "weekly",
@@ -25,33 +25,12 @@ SEGMENT_PROFILES = {
         "recommended_frequency": "monthly",
         "rhythm": "Monthly transfers align with international pay cycles.",
     },
-    "civil_servant": {
-        "label": "Civil Servant",
-        "hero": "Secure your government pension with extra voluntary savings.",
-        "cta_color": "#1a5c38",
-        "recommended_frequency": "monthly",
-        "rhythm": "Set up salary deductions for zero-effort saving.",
-    },
-    "formal_sector": {
-        "label": "Formal Sector Employee",
-        "hero": "Your employer matches your NSSF. Add SmartLife Flexi to go further.",
-        "cta_color": "#1a5c38",
-        "recommended_frequency": "monthly",
-        "rhythm": "Monthly payroll deductions make saving automatic.",
-    },
     "informal_sector": {
-        "label": "Informal Sector / Self-Employed",
+        "label": "Informal Sector Saver",
         "hero": "No salary? No problem. Save on your own schedule with SmartLife Flexi.",
         "cta_color": "#c9a227",
         "recommended_frequency": "weekly",
         "rhythm": "Save when business is good — weekly or daily.",
-    },
-    "parent_guardian": {
-        "label": "Parent / Guardian",
-        "hero": "Build a nest egg for your children's education and future.",
-        "cta_color": "#1a5c38",
-        "recommended_frequency": "monthly",
-        "rhythm": "Monthly savings grow steadily over your child's school years.",
     },
     "staff_assisted_prospect": {
         "label": "Staff-Assisted Prospect",
@@ -63,18 +42,13 @@ SEGMENT_PROFILES = {
 }
 
 GOAL_MESSAGES = {
-    "marriage": {"label": "Marriage", "copy": "Save steadily so your special day is everything you dreamed of.", "icon": "💍"},
-    "vacation": {"label": "Vacation", "copy": "Turn your travel dreams into a funded reality.", "icon": "✈️"},
-    "homeownership": {"label": "Home Ownership", "copy": "Every contribution brings you closer to the keys of your own home.", "icon": "🏠"},
-    "school_fees": {"label": "School Fees", "copy": "Never miss a school term. Build a dedicated fees fund today.", "icon": "📚"},
-    "wedding": {"label": "Wedding", "copy": "Celebrate love without financial stress — start saving now.", "icon": "💒"},
-    "emergencies": {"label": "Emergency Fund", "copy": "Life is unpredictable. Your SmartLife fund is always ready.", "icon": "🛡️"},
     "education": {"label": "Education", "copy": "Invest in knowledge — the return is always worth it.", "icon": "🎓"},
-    "avoiding_debt": {"label": "Avoiding Debt", "copy": "Your savings buffer is your best defence against borrowing.", "icon": "🔒"},
-    "investment": {"label": "Investment", "copy": "Grow your wealth through disciplined, consistent saving.", "icon": "📈"},
-    "financial_security": {"label": "Financial Security", "copy": "Build the cushion that lets you face any challenge with confidence.", "icon": "⚡"},
-    "job_loss_cushion": {"label": "Job Loss Cushion", "copy": "Protect your family when income stops — save before you need it.", "icon": "🧲"},
+    "homeownership": {"label": "Home Ownership", "copy": "Every contribution brings you closer to the keys of your own home.", "icon": "🏠"},
+    "land": {"label": "Land Purchase", "copy": "Own your own land — a foundation for everything else.", "icon": "🌱"},
     "car": {"label": "Car Purchase", "copy": "Drive your dream vehicle — funded by your own savings.", "icon": "🚗"},
+    "business_capital": {"label": "Business Capital", "copy": "Grow your business with a dedicated savings fund.", "icon": "📈"},
+    "emergencies": {"label": "Emergency Fund", "copy": "Life is unpredictable. Your SmartLife fund is always ready.", "icon": "🛡️"},
+    "wedding": {"label": "Wedding / Marriage", "copy": "Celebrate love without financial stress — start saving now.", "icon": "💍"},
     "retirement": {"label": "Retirement", "copy": "Retire with dignity. Every shilling saved today is freedom tomorrow.", "icon": "🌅"},
     "financial_independence": {"label": "Financial Independence", "copy": "Your money working for you — that's true independence.", "icon": "🦁"},
     "other": {"label": "Other Goal", "copy": "Whatever your goal, SmartLife Flexi helps you get there.", "icon": "⭐"},
@@ -123,10 +97,7 @@ CTA_COLORS = {
     "existing_member": "#1a5c38",
     "new_voluntary": "#1a5c38",
     "diaspora": "#c9a227",
-    "civil_servant": "#1a5c38",
-    "formal_sector": "#1a5c38",
     "informal_sector": "#c9a227",
-    "parent_guardian": "#1a5c38",
     "staff_assisted_prospect": "#1a5c38",
 }
 

@@ -1,8 +1,8 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<div class="smartlife-demo-notice">
-  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+<div class="sl-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. No real NSSF account has been created. No real contribution has been made.
 </div>
 
 <div class="smartlife-thankyou-wrapper">
@@ -12,13 +12,16 @@
 
   <h1 class="sl-thankyou-title">You're on your way!</h1>
   <p class="sl-thankyou-subtitle">Your SmartLife Flexi plan has been simulated successfully.</p>
-  <div class="sl-demo-badge">DEMO ENVIRONMENT — No real account created</div>
+  <div class="sl-demo-badge">DEMO ENVIRONMENT — No real account created. No real contribution made.</div>
 
   <div class="sl-plan-summary-card">
     <h2>Your Plan Summary</h2>
     <div class="sl-summary-row"><span>Status:</span><span class="sl-status-active">Active (Demo)</span></div>
     <div class="sl-summary-row"><span>Goal:</span><span id="ty-goal">—</span></div>
     <div class="sl-summary-row"><span>Frequency:</span><span id="ty-frequency">—</span></div>
+    <div class="sl-summary-row"><span>Amount per period:</span><span id="ty-amount">—</span></div>
+    <div class="sl-summary-row"><span>Period:</span><span id="ty-period">—</span></div>
+    <div class="sl-summary-row"><span>Projected Value:</span><span id="ty-projected">—</span></div>
     <div class="sl-summary-row"><span>Projected Growth:</span><span>10% indicative annual return</span></div>
   </div>
 
@@ -33,13 +36,13 @@
   </div>
 
   <div class="sl-thankyou-actions">
-    <a href="/smartlife-support-demo" class="smartlife-btn-secondary">
+    <a href="/smartlife-support-demo" class="sl-btn-secondary">
       💬 Get Support
     </a>
-    <a href="/smartlife-staff-assist" class="smartlife-btn-secondary">
+    <a href="/smartlife-staff-assist" class="sl-btn-secondary">
       🤝 Talk to Staff
     </a>
-    <a href="/smartlife-flexi-demo" class="smartlife-btn-primary">
+    <a href="/smartlife-flexi-demo" class="sl-btn-primary">
       🔄 Restart Demo
     </a>
   </div>
@@ -48,13 +51,40 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var params = new URLSearchParams(window.location.search);
-  document.getElementById('ty-goal').textContent = params.get('goal') || 'Not specified';
-  document.getElementById('ty-frequency').textContent = params.get('frequency') || 'Not specified';
+  var goalLabels = {
+    education: 'Education', homeownership: 'Home Ownership', land: 'Land',
+    car: 'Car', business_capital: 'Business Capital', emergencies: 'Emergency Fund',
+    wedding: 'Wedding / Marriage', retirement: 'Retirement',
+    financial_independence: 'Financial Independence', other: 'Other Goal'
+  };
+  var freqLabels = {
+    daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+    quarterly: 'Quarterly', 'semi-annually': 'Semi-Annually', annually: 'Annually'
+  };
+
+  var goal = params.get('goal') || '';
+  var frequency = params.get('frequency') || '';
+  var amount = params.get('amount') || '';
+  var period = params.get('period') || '';
+  var projected = params.get('projected') || '';
+
+  var tyGoal = document.getElementById('ty-goal');
+  var tyFreq = document.getElementById('ty-frequency');
+  var tyAmt = document.getElementById('ty-amount');
+  var tyPeriod = document.getElementById('ty-period');
+  var tyProj = document.getElementById('ty-projected');
+
+  if (tyGoal) tyGoal.textContent = goalLabels[goal] || goal || 'Not specified';
+  if (tyFreq) tyFreq.textContent = freqLabels[frequency] || frequency || 'Not specified';
+  if (tyAmt) tyAmt.textContent = amount ? 'UGX ' + parseInt(amount).toLocaleString() : '—';
+  if (tyPeriod) tyPeriod.textContent = period ? period + ' year' + (parseInt(period) > 1 ? 's' : '') : '—';
+  if (tyProj) tyProj.textContent = projected && projected !== '0' ? 'UGX ' + parseInt(projected).toLocaleString() : '—';
+
   if (window.SmartLifeAnalytics) {
     SmartLifeAnalytics.demoSubmit({
       journey_type: 'self_serve',
-      goal_category: params.get('goal') || '',
-      frequency: params.get('frequency') || '',
+      goal_category: goal || '',
+      frequency: frequency || '',
       completion_status: 'complete'
     });
   }

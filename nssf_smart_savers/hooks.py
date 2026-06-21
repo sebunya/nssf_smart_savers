@@ -1,9 +1,9 @@
 app_name = "nssf_smart_savers"
 app_title = "Nssf Smart Savers"
-app_publisher = "Ten-X Africa"
+app_publisher = " Ten-X Africa"
+app_description = "Demo growth, onboarding and staff-assist system for SmartLife Flexi"
 app_email = "robsebunya@gmail.com"
 app_license = "mit"
-app_description = "Demo growth, onboarding and staff-assist system for SmartLife Flexi"
 
 # Website Route Rules
 # -------------------
@@ -20,10 +20,7 @@ website_route_rules = [
 # Jinja
 # ----------
 jinja = {
-    "methods": [
-        "nssf_smart_savers.utils.jinja_methods.format_ugx",
-        "nssf_smart_savers.utils.jinja_methods.get_frequency_label",
-    ],
+    "methods": "nssf_smart_savers.utils.jinja_methods",
 }
 
 # Includes in <head>
@@ -43,7 +40,3 @@ web_include_js = [
 # Generators
 # ----------
 website_generators = []
-
-# Login Hook
-# ----------
-on_login = "nssf_smart_savers.utils.on_login"

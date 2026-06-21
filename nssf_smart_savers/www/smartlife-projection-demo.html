@@ -1,10 +1,10 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<div class="smartlife-demo-notice">
+<div class="sl-demo-notice">
   ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
 </div>
-<div class="smartlife-projection-disclaimer">
+<div class="sl-projection-disclaimer">
   Projection is indicative for demo purposes only. Actual returns may vary.
 </div>
 
@@ -12,45 +12,56 @@
   <h1>Savings Projection Calculator</h1>
   <p>See how your SmartLife Flexi savings grow over time.</p>
 
-  <div class="sl-projection-form">
-    <div class="sl-field">
-      <label>Savings Goal</label>
-      <select id="proj-goal">
-        {% for goal in goals %}
-        <option value="{{ goal.key }}">{{ goal.label }}</option>
-        {% endfor %}
+  <div class="sl-form" style="max-width:520px">
+    <div class="sl-form-row">
+      <label for="proj-goal" class="sl-label">Savings Goal</label>
+      <select id="proj-goal" class="sl-select">
+        <option value="education">Education</option>
+        <option value="homeownership">Home Ownership</option>
+        <option value="land">Land</option>
+        <option value="car">Car</option>
+        <option value="business_capital">Business Capital</option>
+        <option value="emergencies">Emergency Fund</option>
+        <option value="wedding">Wedding / Marriage</option>
+        <option value="retirement">Retirement</option>
+        <option value="financial_independence">Financial Independence</option>
+        <option value="other">Other Goal</option>
       </select>
     </div>
-    <div class="sl-field">
-      <label>Contribution Frequency</label>
-      <select id="proj-frequency" onchange="SLProjection.calculate()">
-        {% for freq in frequencies %}
-        <option value="{{ freq.key }}" {% if freq.key == 'monthly' %}selected{% endif %}>{{ freq.label }}</option>
-        {% endfor %}
+    <div class="sl-form-row">
+      <label for="proj-frequency" class="sl-label">Contribution Frequency</label>
+      <select id="proj-frequency" class="sl-select" onchange="SLProjection.calculate()">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly" selected>Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="semi-annually">Semi-Annually</option>
+        <option value="annually">Annually</option>
       </select>
     </div>
-    <div class="sl-field">
-      <label>Contribution Amount (UGX per period)</label>
-      <input type="number" id="proj-contribution" value="50000" min="5000" oninput="SLProjection.debounce()">
+    <div class="sl-form-row">
+      <label for="proj-contribution" class="sl-label">Contribution Amount (UGX per period)</label>
+      <input type="number" id="proj-contribution" class="sl-input" value="50000" min="5000" oninput="SLProjection.debounce()">
     </div>
-    <div class="sl-field">
-      <label>Initial Deposit (UGX, optional)</label>
-      <input type="number" id="proj-initial" value="0" min="0" oninput="SLProjection.debounce()">
+    <div class="sl-form-row">
+      <label for="proj-initial" class="sl-label">Initial Deposit (UGX, optional)</label>
+      <input type="number" id="proj-initial" class="sl-input" value="0" min="0" oninput="SLProjection.debounce()">
     </div>
-    <div class="sl-field">
-      <label>Savings Period (years)</label>
-      <input type="number" id="proj-years" value="5" min="1" max="40" oninput="SLProjection.debounce()">
+    <div class="sl-form-row">
+      <label for="proj-years" class="sl-label">Savings Period (years)</label>
+      <input type="number" id="proj-years" class="sl-input" value="5" min="1" max="40" oninput="SLProjection.debounce()">
     </div>
   </div>
 
-  <div class="smartlife-projection-result">
+  <div class="sl-result-cards" style="margin:24px 0">
     <div class="sl-result-card">
       <div class="sl-result-label">Total Contributions</div>
       <div class="sl-result-value" id="proj-total-contributions">—</div>
     </div>
-    <div class="sl-result-card sl-result-card-highlight">
+    <div class="sl-result-card sl-result-featured">
       <div class="sl-result-label">Projected Value</div>
       <div class="sl-result-value" id="proj-projected-value">—</div>
+      <div class="sl-result-note">at 10% indicative annual return</div>
     </div>
     <div class="sl-result-card">
       <div class="sl-result-label">Indicative Return</div>
@@ -60,8 +71,8 @@
 
   <div class="sl-comparison-section">
     <h3>Frequency Comparison</h3>
-    <p>Same total monthly-equivalent investment across frequencies:</p>
-    <table class="sl-comparison-table" id="proj-comparison-table">
+    <p style="color:#666;font-size:14px">Same contribution amount across different frequencies:</p>
+    <table class="sl-compare-table">
       <thead>
         <tr>
           <th>Frequency</th>
@@ -71,22 +82,22 @@
         </tr>
       </thead>
       <tbody id="proj-comparison-body">
-        <tr><td colspan="4">Calculate above to see comparison</td></tr>
+        <tr><td colspan="4" style="color:#888;font-style:italic">Calculate above to see comparison</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="sl-milestone-section">
+  <div class="sl-milestone-section" style="margin:24px 0">
     <h3>Goal Milestones</h3>
     <div id="proj-milestones"></div>
   </div>
 
-  <div class="sl-nudge-message">
+  <div class="sl-projection-nudge">
     <strong>💡 SmartLife Insight:</strong> Starting today with even a small amount puts you ahead. The earlier you start, the more compound interest works in your favour.
   </div>
 
-  <div class="sl-projection-cta">
-    <a href="/smartlife-self-serve" class="smartlife-btn-primary" data-smartlife-event="cta_click" data-cta="projection_to_self_serve">
+  <div style="margin-top:24px">
+    <a href="/smartlife-self-serve" class="sl-btn-primary" data-smartlife-event="cta_click" data-cta="projection_to_self_serve">
       Start Saving Now
     </a>
   </div>
@@ -117,50 +128,68 @@ window.SLProjection = {
         document.getElementById('proj-indicative-return').textContent = 'UGX ' + Math.round(msg.indicative_return || 0).toLocaleString();
         SLProjection.updateMilestones(msg.projected_value, years);
         SLProjection.updateComparison(contrib, initial, years);
-        if (window.SmartLifeAnalytics) SmartLifeAnalytics.projectionViewed({ frequency: freq, period_band: years <= 1 ? '1y' : years <= 3 ? '1-3y' : years <= 5 ? '3-5y' : '5-10y' });
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.projectionViewed({
+          frequency: freq,
+          period_band: years <= 1 ? '1y' : years <= 3 ? '1-3y' : years <= 5 ? '3-5y' : '5-10y'
+        });
       })
-      .catch(function(e) { console.error('Projection error', e); });
+      .catch(function(e) { console.error('[SmartLife] Projection error', e); });
   },
   updateMilestones: function(projectedValue, years) {
     var milestones = [500000, 1000000, 5000000, 10000000, 50000000];
     var html = '';
     milestones.forEach(function(m) {
       var reached = projectedValue >= m;
-      html += '<div class="sl-milestone ' + (reached ? 'reached' : '') + '">' +
-        (reached ? '✅' : '⬜') + ' UGX ' + m.toLocaleString() + '</div>';
+      html += '<span style="display:inline-block;margin:4px 8px;padding:4px 12px;background:' +
+        (reached ? '#d1fae5' : '#f5f5f5') + ';border-radius:20px;font-size:13px;color:' +
+        (reached ? '#16a34a' : '#666') + '">' +
+        (reached ? '✅' : '⬜') + ' UGX ' + m.toLocaleString() + '</span>';
     });
     document.getElementById('proj-milestones').innerHTML = html;
   },
   updateComparison: function(contrib, initial, years) {
     var freqs = [
-      {key: 'daily', label: 'Daily', n: 365},
-      {key: 'weekly', label: 'Weekly', n: 52},
-      {key: 'monthly', label: 'Monthly', n: 12},
-      {key: 'annually', label: 'Annually', n: 1}
+      {key: 'daily', label: 'Daily'},
+      {key: 'weekly', label: 'Weekly'},
+      {key: 'monthly', label: 'Monthly'},
+      {key: 'quarterly', label: 'Quarterly'},
+      {key: 'semi-annually', label: 'Semi-Annually'},
+      {key: 'annually', label: 'Annually'}
     ];
-    var monthlyEquiv = parseFloat(contrib) * 12 / document.querySelector('#proj-frequency option:checked').textContent.trim().replace(/Daily/, '365').replace(/Weekly/, '52').replace(/Monthly/, '12').replace(/Quarterly/, '4').replace(/Annually/, '1');
     var tbody = document.getElementById('proj-comparison-body');
-    tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#888">Loading...</td></tr>';
     var rows = [];
     var done = 0;
+    var perPeriod = Math.round(parseFloat(contrib));
     freqs.forEach(function(f) {
-      var perPeriod = Math.round(parseFloat(contrib));
       fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + initial +
         '&periodic_contribution=' + perPeriod + '&frequency=' + f.key + '&years=' + years)
         .then(function(r) { return r.json(); })
         .then(function(data) {
           var msg = data.message || data;
-          rows.push('<tr><td>' + f.label + '</td><td>UGX ' + perPeriod.toLocaleString() + '</td><td>UGX ' +
-            Math.round(msg.projected_value || 0).toLocaleString() + '</td><td>UGX ' +
-            Math.round(msg.indicative_return || 0).toLocaleString() + '</td></tr>');
+          rows.push({
+            label: f.label,
+            per: perPeriod,
+            proj: Math.round(msg.projected_value || 0),
+            ret: Math.round(msg.indicative_return || 0)
+          });
           done++;
-          if (done === freqs.length) tbody.innerHTML = rows.join('');
-        });
+          if (done === freqs.length) {
+            var order = ['Daily','Weekly','Monthly','Quarterly','Semi-Annually','Annually'];
+            rows.sort(function(a,b){ return order.indexOf(a.label) - order.indexOf(b.label); });
+            tbody.innerHTML = rows.map(function(r) {
+              return '<tr><td>' + r.label + '</td><td>UGX ' + r.per.toLocaleString() + '</td><td>UGX ' +
+                r.proj.toLocaleString() + '</td><td>UGX ' + r.ret.toLocaleString() + '</td></tr>';
+            }).join('');
+          }
+        })
+        .catch(function() { done++; });
     });
   }
 };
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.info('[SmartLife] Projection initialised');
   SLProjection.calculate();
   if (window.SmartLifeAnalytics) SmartLifeAnalytics.demoView({ journey_type: 'projection', step_name: 'projection_calculator' });
 });

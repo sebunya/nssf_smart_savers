@@ -1,0 +1,1 @@
+# SmartLife Flexi integrations package

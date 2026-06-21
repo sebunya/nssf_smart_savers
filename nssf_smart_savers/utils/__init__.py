@@ -1,2 +1,1 @@
-def on_login(login_manager):
-    pass
+# SmartLife Flexi utils package
