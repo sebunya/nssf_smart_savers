@@ -1,0 +1,331 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-self-serve-wrapper">
+  <div class="smartlife-stepper" id="sl-stepper">
+    <div class="sl-step active" data-step="1">1. Saver Type</div>
+    <div class="sl-step" data-step="2">2. Goal</div>
+    <div class="sl-step" data-step="3">3. Plan Details</div>
+    <div class="sl-step" data-step="4">4. Projection</div>
+    <div class="sl-step" data-step="5">5. Your Plan</div>
+  </div>
+
+  <!-- Step 1: Saver Type -->
+  <div class="sl-step-content active" id="sl-step-1">
+    <h2>Who are you saving as?</h2>
+    <div class="smartlife-card-grid">
+      {% for seg in segments %}
+      <div class="smartlife-card sl-segment-card"
+           data-value="{{ seg.key }}"
+           onclick="SmartLife.selectSegment('{{ seg.key }}', this)">
+        <span class="smartlife-card-icon">{{ seg.icon }}</span>
+        <span class="smartlife-card-label">{{ seg.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="sl-nav">
+      <button class="smartlife-btn-primary" onclick="SmartLife.nextStep()" id="sl-step1-next" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Goal -->
+  <div class="sl-step-content" id="sl-step-2">
+    <h2>What are you saving for?</h2>
+    <div class="smartlife-goal-grid">
+      {% for goal in goals %}
+      <div class="smartlife-goal-card sl-goal-card"
+           data-value="{{ goal.key }}"
+           onclick="SmartLife.selectGoal('{{ goal.key }}', this)">
+        <span class="smartlife-goal-icon">{{ goal.icon }}</span>
+        <span class="smartlife-goal-label">{{ goal.label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="sl-nav">
+      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
+      <button class="smartlife-btn-primary" onclick="SmartLife.nextStep()" id="sl-step2-next" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Plan Details -->
+  <div class="sl-step-content" id="sl-step-3">
+    <h2>Set up your plan</h2>
+    <div class="smartlife-form">
+      <div class="sl-field">
+        <label>Goal nickname (optional)</label>
+        <input type="text" id="sl-goal-nickname" placeholder="e.g. My Dream Home" maxlength="100"
+               oninput="SmartLife.checkPII(this)">
+      </div>
+      <div class="sl-field">
+        <label>Target amount (UGX)</label>
+        <input type="number" id="sl-target-amount" placeholder="e.g. 10000000" min="0"
+               oninput="SmartLife.validateForm()">
+      </div>
+      <div class="sl-field">
+        <label>Savings period (years)</label>
+        <input type="number" id="sl-years" placeholder="e.g. 5" min="1" max="40"
+               oninput="SmartLife.validateForm()">
+      </div>
+      <div class="sl-field">
+        <label>Savings frequency</label>
+        <select id="sl-frequency" onchange="SmartLife.validateForm()">
+          <option value="">Select frequency</option>
+          {% for freq in frequencies %}
+          <option value="{{ freq.key }}">{{ freq.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>Contribution amount (UGX per period, min 5,000)</label>
+        <input type="number" id="sl-contribution" placeholder="e.g. 50000" min="5000"
+               oninput="SmartLife.validateForm()">
+      </div>
+      <div class="sl-field">
+        <label>Initial deposit (UGX, optional)</label>
+        <input type="number" id="sl-initial-deposit" placeholder="e.g. 100000" min="0"
+               oninput="SmartLife.validateForm()">
+      </div>
+      <div class="sl-field">
+        <label>Source of income</label>
+        <select id="sl-source-of-income">
+          <option value="">Select source</option>
+          {% for src in sources_of_income %}
+          <option value="{{ src }}">{{ src }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>Industry</label>
+        <select id="sl-industry">
+          <option value="">Select industry</option>
+          {% for ind in industries %}
+          <option value="{{ ind }}">{{ ind }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>Country</label>
+        <select id="sl-country">
+          {% for c in countries %}
+          <option value="{{ c }}" {% if c == "Uganda" %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="sl-pii-warning" id="sl-pii-warning" style="display:none">
+        ⚠️ Demo environment: Do not enter real NIN, phone numbers, or personal contact details.
+      </div>
+    </div>
+    <div class="sl-nav">
+      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
+      <button class="smartlife-btn-primary" onclick="SmartLife.runProjection()" id="sl-step3-next">Calculate</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Projection -->
+  <div class="sl-step-content" id="sl-step-4">
+    <h2>Your Savings Projection</h2>
+    <div class="smartlife-projection-disclaimer">
+      Projection is indicative for demo purposes only. Actual returns may vary.
+    </div>
+    <div class="smartlife-projection-result" id="sl-projection-result">
+      <div class="sl-result-card">
+        <div class="sl-result-label">Total Contributions</div>
+        <div class="sl-result-value" id="sl-total-contributions">—</div>
+      </div>
+      <div class="sl-result-card sl-result-card-highlight">
+        <div class="sl-result-label">Projected Value</div>
+        <div class="sl-result-value" id="sl-projected-value">—</div>
+      </div>
+      <div class="sl-result-card">
+        <div class="sl-result-label">Indicative Return</div>
+        <div class="sl-result-value" id="sl-indicative-return">—</div>
+      </div>
+    </div>
+    <div class="sl-chart-wrapper">
+      <canvas id="sl-projection-chart" width="600" height="300"></canvas>
+    </div>
+    <div class="sl-nav">
+      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
+      <button class="smartlife-btn-primary" onclick="SmartLife.getPlan()">Get My Plan</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Personalised Plan -->
+  <div class="sl-step-content" id="sl-step-5">
+    <h2>Your Personalised Plan</h2>
+    <div class="sl-plan-card" id="sl-plan-card">
+      <div class="sl-plan-hero" id="sl-plan-hero"></div>
+      <div class="sl-plan-goal" id="sl-plan-goal"></div>
+      <div class="sl-plan-rhythm" id="sl-plan-rhythm"></div>
+      <div class="sl-plan-nba" id="sl-plan-nba"></div>
+    </div>
+    <div class="sl-plan-actions" id="sl-plan-actions">
+      <a href="/smartlife-checkout-demo" class="smartlife-btn-primary" id="sl-checkout-btn">
+        Start Saving Today
+      </a>
+      <a href="/smartlife-staff-assist" class="smartlife-btn-secondary">
+        Get Staff Help
+      </a>
+    </div>
+    <div class="sl-nav">
+      <button class="smartlife-btn-secondary" onclick="SmartLife.prevStep()">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.SmartLife = window.SmartLife || {};
+SmartLife._state = { segment: '', goal: '', step: 1 };
+
+SmartLife.selectSegment = function(val, el) {
+  SmartLife._state.segment = val;
+  document.querySelectorAll('.sl-segment-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('sl-step1-next').disabled = false;
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.segmentSelected(val);
+};
+
+SmartLife.selectGoal = function(val, el) {
+  SmartLife._state.goal = val;
+  document.querySelectorAll('.sl-goal-card').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+  document.getElementById('sl-step2-next').disabled = false;
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.goalSelected(val, SmartLife._state.segment);
+};
+
+SmartLife.checkPII = function(el) {
+  var val = el.value || '';
+  var piiWarning = document.getElementById('sl-pii-warning');
+  var ninPat = /^[A-Z]{2}\d{7}[A-Z]{2}$/i;
+  var phonePat = /^(\+?256|0)[7][0-9]{8}$/;
+  if (ninPat.test(val.trim()) || phonePat.test(val.replace(/[\s\-()]/g, ''))) {
+    piiWarning.style.display = 'block';
+    el.value = '';
+  } else {
+    piiWarning.style.display = 'none';
+  }
+};
+
+SmartLife.validateForm = function() {
+  var contrib = parseFloat(document.getElementById('sl-contribution').value) || 0;
+  var years = parseInt(document.getElementById('sl-years').value) || 0;
+  var freq = document.getElementById('sl-frequency').value;
+  var btn = document.getElementById('sl-step3-next');
+  if (btn) btn.disabled = !(contrib >= 5000 && years >= 1 && freq);
+};
+
+SmartLife.runProjection = function() {
+  var contrib = document.getElementById('sl-contribution').value;
+  var initial = document.getElementById('sl-initial-deposit').value || '0';
+  var freq = document.getElementById('sl-frequency').value;
+  var years = document.getElementById('sl-years').value;
+  SmartLife.nextStep();
+  fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + initial +
+    '&periodic_contribution=' + contrib + '&frequency=' + freq + '&years=' + years)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var msg = data.message || data;
+      document.getElementById('sl-total-contributions').textContent = 'UGX ' + Math.round(msg.total_contributions || 0).toLocaleString();
+      document.getElementById('sl-projected-value').textContent = 'UGX ' + Math.round(msg.projected_value || 0).toLocaleString();
+      document.getElementById('sl-indicative-return').textContent = 'UGX ' + Math.round(msg.indicative_return || 0).toLocaleString();
+      SmartLife._projectionData = msg;
+      if (window.SmartLifeAnalytics) SmartLifeAnalytics.projectionViewed({ frequency: freq, period_band: SmartLife.periodBand(years) });
+    })
+    .catch(function(e) { console.error('Projection error', e); });
+};
+
+SmartLife.periodBand = function(years) {
+  years = parseInt(years) || 0;
+  if (years <= 1) return '1y';
+  if (years <= 3) return '1-3y';
+  if (years <= 5) return '3-5y';
+  if (years <= 10) return '5-10y';
+  return '10y+';
+};
+
+SmartLife.getPlan = function() {
+  var segment = SmartLife._state.segment || 'new_voluntary';
+  var goal = SmartLife._state.goal || 'other';
+  var target = document.getElementById('sl-target-amount').value || '0';
+  var years = document.getElementById('sl-years').value || '1';
+  var freq = document.getElementById('sl-frequency').value || 'monthly';
+  var initial = document.getElementById('sl-initial-deposit').value || '0';
+  SmartLife.nextStep();
+  fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?segment=' + segment +
+    '&goal=' + goal + '&target_amount=' + target + '&years=' + years +
+    '&frequency=' + freq + '&initial_deposit=' + initial)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var plan = data.message || data;
+      document.getElementById('sl-plan-hero').textContent = plan.hero_copy || '';
+      document.getElementById('sl-plan-goal').textContent = plan.goal_copy || '';
+      document.getElementById('sl-plan-rhythm').textContent = 'Rhythm: ' + (plan.recommended_rhythm || '');
+      document.getElementById('sl-plan-nba').textContent = 'Next: ' + (plan.next_best_action || '');
+      var cta = document.getElementById('sl-checkout-btn');
+      if (cta && plan.cta_label) cta.textContent = plan.cta_label;
+      if (cta && plan.cta_color) cta.style.background = plan.cta_color;
+      // Pass plan data to checkout
+      if (cta) {
+        var initial = document.getElementById('sl-initial-deposit').value || '0';
+        cta.href = '/smartlife-checkout-demo?goal=' + encodeURIComponent(goal) +
+          '&frequency=' + encodeURIComponent(freq) +
+          '&amount=' + encodeURIComponent(initial || document.getElementById('sl-contribution').value || '50000');
+      }
+      SmartLife._planData = plan;
+      if (window.SmartLifeAnalytics) SmartLifeAnalytics.planGenerated({ segment: segment, goal_category: goal, frequency: freq });
+    })
+    .catch(function(e) { console.error('Plan error', e); });
+};
+
+SmartLife.nextStep = function() {
+  var current = SmartLife._state.step;
+  var next = current + 1;
+  document.getElementById('sl-step-' + current).classList.remove('active');
+  document.getElementById('sl-step-' + next) && document.getElementById('sl-step-' + next).classList.add('active');
+  document.querySelector('[data-step="' + current + '"]') && document.querySelector('[data-step="' + current + '"]').classList.remove('active');
+  document.querySelector('[data-step="' + next + '"]') && document.querySelector('[data-step="' + next + '"]').classList.add('active');
+  SmartLife._state.step = next;
+  window.scrollTo(0, 0);
+};
+
+SmartLife.prevStep = function() {
+  var current = SmartLife._state.step;
+  var prev = current - 1;
+  if (prev < 1) return;
+  document.getElementById('sl-step-' + current).classList.remove('active');
+  document.getElementById('sl-step-' + prev).classList.add('active');
+  document.querySelector('[data-step="' + current + '"]').classList.remove('active');
+  document.querySelector('[data-step="' + prev + '"]').classList.add('active');
+  SmartLife._state.step = prev;
+  window.scrollTo(0, 0);
+};
+
+window.addEventListener('beforeunload', function() {
+  if (SmartLife._state.step > 1 && window.SmartLifeAnalytics) {
+    SmartLifeAnalytics.dropoffDetected('step_' + SmartLife._state.step, {
+      segment: SmartLife._state.segment,
+      goal: SmartLife._state.goal,
+      journey_type: 'self_serve'
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('segment')) {
+    SmartLife._state.segment = params.get('segment');
+    SmartLife.nextStep();
+  }
+  if (params.get('goal')) {
+    SmartLife._state.goal = params.get('goal');
+  }
+  if (window.SmartLifeAnalytics) {
+    SmartLifeAnalytics.demoView({ journey_type: 'self_serve', step_name: 'self_serve_start' });
+  }
+});
+</script>
+{% endblock %}

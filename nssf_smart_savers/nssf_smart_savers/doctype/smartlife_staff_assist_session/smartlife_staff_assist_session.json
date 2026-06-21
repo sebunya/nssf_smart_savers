@@ -1,0 +1,46 @@
+{
+  "name": "SmartLife Staff Assist Session",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "naming_series:",
+  "naming_series": "SL-STAFF-.YYYY.-.####",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "naming_series", "prospect_segment", "goal", "goal_clarity", "ability_to_save", "source_of_income",
+    "industry", "country", "frequency", "initial_deposit_ready", "objection",
+    "follow_up_channel", "staff_owner", "conversion_stage", "next_best_action",
+    "recommended_pitch", "objection_script", "follow_up_checklist",
+    "crm_stage_suggestion", "helpdesk_ticket_created", "session_notes", "is_demo"
+  ],
+  "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-STAFF-.YYYY.-.####"},
+    {"fieldname": "prospect_segment", "fieldtype": "Data", "label": "Prospect Segment"},
+    {"fieldname": "goal", "fieldtype": "Data", "label": "Goal"},
+    {"fieldname": "goal_clarity", "fieldtype": "Select", "label": "Goal Clarity", "options": "\nClear\nPartial\nUnclear"},
+    {"fieldname": "ability_to_save", "fieldtype": "Select", "label": "Ability to Save", "options": "\nReady\nHesitant\nUnable"},
+    {"fieldname": "source_of_income", "fieldtype": "Data", "label": "Source of Income"},
+    {"fieldname": "industry", "fieldtype": "Data", "label": "Industry"},
+    {"fieldname": "country", "fieldtype": "Data", "label": "Country", "default": "Uganda"},
+    {"fieldname": "frequency", "fieldtype": "Data", "label": "Frequency"},
+    {"fieldname": "initial_deposit_ready", "fieldtype": "Select", "label": "Initial Deposit Ready", "options": "\nYes\nNo\nUnsure"},
+    {"fieldname": "objection", "fieldtype": "Data", "label": "Objection"},
+    {"fieldname": "follow_up_channel", "fieldtype": "Select", "label": "Follow Up Channel", "options": "\nPhone\nWhatsApp\nEmail\nWalk-in\nNone"},
+    {"fieldname": "staff_owner", "fieldtype": "Data", "label": "Staff Owner"},
+    {"fieldname": "conversion_stage", "fieldtype": "Select", "label": "Conversion Stage", "options": "\nNew Prospect\nInterested\nPlan Shown\nObjection Raised\nFollow-up Scheduled\nConverted\nLost"},
+    {"fieldname": "next_best_action", "fieldtype": "Small Text", "label": "Next Best Action"},
+    {"fieldname": "recommended_pitch", "fieldtype": "Long Text", "label": "Recommended Pitch"},
+    {"fieldname": "objection_script", "fieldtype": "Long Text", "label": "Objection Script"},
+    {"fieldname": "follow_up_checklist", "fieldtype": "Long Text", "label": "Follow Up Checklist"},
+    {"fieldname": "crm_stage_suggestion", "fieldtype": "Data", "label": "CRM Stage Suggestion"},
+    {"fieldname": "helpdesk_ticket_created", "fieldtype": "Check", "label": "Helpdesk Ticket Created"},
+    {"fieldname": "session_notes", "fieldtype": "Long Text", "label": "Session Notes"},
+    {"fieldname": "is_demo", "fieldtype": "Check", "label": "Is Demo", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

@@ -4,9 +4,10 @@ set -euo pipefail
 BENCH_PATH="${BENCH_PATH:-/home/frappe/frappe-bench}"
 SITE_NAME="${SITE_NAME:-nssf-smartlifeflexi.nile-gov-demo.com}"
 APP_NAME="${APP_NAME:-nssf_smart_savers}"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-phase-1-smartlife-onboarding}"
 APP_PATH="$BENCH_PATH/apps/$APP_NAME"
 
-echo "Deploying $APP_NAME to $SITE_NAME"
+echo "Deploying $APP_NAME (branch: $DEPLOY_BRANCH) to $SITE_NAME"
 
 if [ ! -d "$BENCH_PATH" ]; then
   echo "ERROR: Bench path not found: $BENCH_PATH"
@@ -23,9 +24,6 @@ cd "$APP_PATH"
 echo "Current branch:"
 git branch --show-current
 
-echo "Current commit:"
-git log --oneline -1
-
 echo "Checking working tree..."
 git status --short
 
@@ -34,10 +32,13 @@ if [ -n "$(git status --short)" ]; then
   exit 1
 fi
 
-echo "Fetching latest main..."
-git fetch origin main
-git checkout main
-git pull --ff-only origin main
+echo "Fetching latest $DEPLOY_BRANCH..."
+git fetch origin "$DEPLOY_BRANCH"
+git checkout "$DEPLOY_BRANCH"
+git pull --ff-only origin "$DEPLOY_BRANCH"
+
+echo "Current commit:"
+git log --oneline -1
 
 cd "$BENCH_PATH"
 
@@ -62,4 +63,4 @@ sudo service nginx reload
 echo "Running smoke tests..."
 "$APP_PATH/scripts/smoke_test.sh"
 
-echo "Deployment completed successfully."
+echo "Deployment of $DEPLOY_BRANCH completed successfully."

@@ -1,0 +1,108 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-hero">
+  <div class="smartlife-hero-content">
+    <h1 class="smartlife-hero-title">SmartLife Flexi</h1>
+    <p class="smartlife-hero-subtitle">Save your way. Grow your future.</p>
+    <p class="smartlife-hero-desc">A personalised voluntary savings plan from NSSF Uganda. Choose your goal, set your rhythm, and watch your savings grow.</p>
+    <div class="smartlife-hero-ctas">
+      <a href="/smartlife-self-serve" class="smartlife-btn-primary" data-smartlife-event="cta_click" data-cta="self_serve_start">
+        Start Your Plan
+      </a>
+      <a href="/smartlife-staff-assist" class="smartlife-btn-secondary" data-smartlife-event="cta_click" data-cta="staff_assist_start">
+        Get Staff Help
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="smartlife-section">
+  <h2 class="smartlife-section-title">Who are you saving as?</h2>
+  <div class="smartlife-card-grid">
+    {% for seg in segments %}
+    <a href="/smartlife-self-serve?segment={{ seg.key }}"
+       class="smartlife-card"
+       data-smartlife-event="segment_selected"
+       data-segment="{{ seg.key }}">
+      <span class="smartlife-card-icon">{{ seg.icon }}</span>
+      <span class="smartlife-card-label">{{ seg.label }}</span>
+      <span class="smartlife-card-desc">{{ seg.description }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="smartlife-section smartlife-section-goals">
+  <h2 class="smartlife-section-title">What are you saving for?</h2>
+  <div class="smartlife-goal-grid">
+    {% for goal in goals %}
+    <a href="/smartlife-self-serve?goal={{ goal.key }}"
+       class="smartlife-goal-card"
+       data-smartlife-event="goal_selected"
+       data-goal="{{ goal.key }}">
+      <span class="smartlife-goal-icon">{{ goal.icon }}</span>
+      <span class="smartlife-goal-label">{{ goal.label }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="smartlife-section smartlife-section-features">
+  <h2 class="smartlife-section-title">Why SmartLife Flexi?</h2>
+  <div class="smartlife-features-grid">
+    <div class="smartlife-feature">
+      <span class="smartlife-feature-icon">💰</span>
+      <h3>10% Indicative Annual Return</h3>
+      <p>Your savings work harder for you under NSSF's management.</p>
+    </div>
+    <div class="smartlife-feature">
+      <span class="smartlife-feature-icon">🔄</span>
+      <h3>Flexible Contributions</h3>
+      <p>Save daily, weekly, monthly — whatever fits your lifestyle.</p>
+    </div>
+    <div class="smartlife-feature">
+      <span class="smartlife-feature-icon">🎯</span>
+      <h3>Goal-Linked Savings</h3>
+      <p>Track progress toward your specific life goals.</p>
+    </div>
+    <div class="smartlife-feature">
+      <span class="smartlife-feature-icon">🏦</span>
+      <h3>NSSF Trusted</h3>
+      <p>Backed by Uganda's largest pension fund manager.</p>
+    </div>
+  </div>
+</div>
+
+<div class="smartlife-section smartlife-projection-cta">
+  <h2>See how your money grows</h2>
+  <p>Use our interactive calculator to visualise your savings journey.</p>
+  <a href="/smartlife-projection-demo" class="smartlife-btn-primary" data-smartlife-event="cta_click" data-cta="projection_tool">
+    Open Projection Calculator
+  </a>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.SmartLifeAnalytics) {
+      SmartLifeAnalytics.demoView({ journey_type: 'self_serve', step_name: 'landing' });
+    }
+    document.querySelectorAll('[data-smartlife-event]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var event = el.getAttribute('data-smartlife-event');
+        var params = {};
+        Array.from(el.attributes).forEach(function(attr) {
+          if (attr.name.startsWith('data-') && attr.name !== 'data-smartlife-event') {
+            params[attr.name.replace('data-', '')] = attr.value;
+          }
+        });
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.push(event, params);
+      });
+    });
+  });
+</script>
+{% endblock %}
