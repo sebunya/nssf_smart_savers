@@ -1,63 +1,97 @@
-# NSSF SmartLife Flexi — Deployment and Verification Runbook
+# NSSF SmartLife Flexi — Final Production Deployment Runbook
 
-**Branch:** `claude/cool-bell-t7n0hs` → `phase-1-smartlife-onboarding`
-**Version tag:** `nssf-brand-dob-ui-20260622`
+**Site:** `nssf-smartlifeflexi.nile-gov-demo.com`
+**App path:** `/home/frappe/frappe-bench/apps/nssf_smart_savers`
+**Production branch:** `phase-1-smartlife-onboarding`
+**Claude feature branch:** `claude/cool-bell-t7n0hs`
 
-The deployment is complete **only** when all ten acceptance criteria at the end of this document are confirmed true. Route HTTP 200 alone is not proof. Work through every step in order.
+**Golden rule:** Do not run Git as `root`. Run Git as `frappe`. Do not judge success from browser view alone. Prove source, origin, public URL, live CSS, smoke test and browser separately.
 
 ---
 
-## STEP 1 — Merge into production branch
+## STEP 1 — Merge latest Claude work into production branch
 
-Run as root on the server. The script drops to `frappe` user inside.
+Run from root:
 
 ```bash
 sudo -u frappe -H bash -lc '
 set -euo pipefail
 
 APP="/home/frappe/frappe-bench/apps/nssf_smart_savers"
+
 cd "$APP"
 
 export GIT_PAGER=cat
 export PAGER=cat
 
+echo "=============================="
+echo "PRE-FLIGHT"
+echo "=============================="
 echo "USER=$(whoami)"
 echo "PWD=$(pwd)"
-echo "CURRENT BRANCH=$(git branch --show-current)"
+echo "BRANCH=$(git branch --show-current)"
 
 git --no-pager status
 git --no-pager log --oneline --decorate -8
 
+echo "=============================="
+echo "FETCH LATEST"
+echo "=============================="
 git fetch origin
 
+echo "=============================="
+echo "CHECKOUT TARGET BRANCH"
+echo "=============================="
 git checkout phase-1-smartlife-onboarding
-git pull origin phase-1-smartlife-onboarding
 
+echo "=============================="
+echo "ENSURE WORKING TREE IS CLEAN"
+echo "=============================="
+if [ -n "$(git status --porcelain)" ]; then
+  echo "STOP: Working tree is dirty. Commit, stash, or inspect before deployment."
+  git status
+  exit 1
+fi
+
+echo "=============================="
+echo "UPDATE TARGET BRANCH"
+echo "=============================="
+git pull --ff-only origin phase-1-smartlife-onboarding
+
+echo "=============================="
+echo "MERGE CLAUDE FEATURE BRANCH"
+echo "=============================="
 git merge --no-ff origin/claude/cool-bell-t7n0hs \
-  -m "Merge final NSSF brand DOB onboarding and smoke-test fixes" || {
-  echo "MERGE FAILED. Resolve conflicts before continuing."
+  -m "Merge final NSSF brand DOB onboarding and deployment runbook" || {
+  echo "STOP: Merge failed. Resolve conflicts before deployment."
   git status
   exit 1
 }
 
+echo "=============================="
+echo "POST-MERGE STATUS"
+echo "=============================="
 git --no-pager status
 git --no-pager log --oneline --decorate -12
 
+echo "=============================="
+echo "PUSH TARGET BRANCH"
+echo "=============================="
 git push origin phase-1-smartlife-onboarding
 '
 ```
 
-**Expected:**
+**Expected result:**
 - Branch is `phase-1-smartlife-onboarding`
-- Working tree is clean after merge
-- Log includes the DOB/NSSF brand/smoke-test commit or a merge commit containing it
+- Working tree is clean
+- Log includes the latest Claude branch work
 - Push succeeds
 
-**Do not continue if merge fails.**
+**Do not continue if this step fails.**
 
 ---
 
-## STEP 2 — Deploy
+## STEP 2 — Deploy on Frappe
 
 ```bash
 cd /home/frappe/frappe-bench
@@ -75,97 +109,115 @@ sudo supervisorctl restart frappe-bench-web:
 sudo supervisorctl restart frappe-bench-workers:
 sudo service nginx reload
 
-sudo supervisorctl status | grep -E "frappe-bench-web|frappe-bench-workers"
+sudo supervisorctl status | egrep "frappe-bench-web|frappe-bench-workers"
 ```
 
-**Expected:**
-- Backup completes without error
-- `migrate` upgrades `nssf_smart_savers` without error
-- `bench build` exits 0
-- Web and workers show `RUNNING`
+**Expected result:**
+- Backup succeeds
+- Migration succeeds
+- Build succeeds
+- Web and workers restart
+- Supervisor status shows running services
 
 ---
 
-## STEP 3 — Prove source state on disk
+## STEP 3 — Prove source on disk is correct
 
 ```bash
 sudo -u frappe -H bash -lc '
 cd /home/frappe/frappe-bench/apps/nssf_smart_savers
 
-echo "=== SOURCE COMMIT ==="
-git --no-pager log --oneline --decorate -5
+echo "=============================="
+echo "SOURCE COMMIT"
+echo "=============================="
+git --no-pager log --oneline --decorate -8
 
-echo ""
-echo "=== DOB SOURCE CHECK ==="
-grep -Rn "date_of_birth\|Date of birth\|birthday_month\|birthday_day" \
-  nssf_smart_savers/www nssf_smart_savers/api.py | head -50
+echo "=============================="
+echo "DOB SOURCE CHECK"
+echo "=============================="
+grep -R "date_of_birth\|Date of birth\|birthday_month\|birthday_day" -n \
+  nssf_smart_savers/www nssf_smart_savers/api.py nssf_smart_savers/doctype | head -80
 
-echo ""
-echo "=== NSSF COLOUR SOURCE CHECK ==="
+echo "=============================="
+echo "NSSF COLOUR SOURCE CHECK"
+echo "=============================="
 grep -E "#002060|#0F2C59|#00AEEF|#00A3E0|#00A859|#107C41" \
   nssf_smart_savers/public/css/smartlife.css
 
-echo ""
-echo "=== ASSET VERSION STRING CHECK ==="
-grep -Rn "nssf-brand-dob-ui-20260622" \
-  nssf_smart_savers/www nssf_smart_savers/templates | head -50
+echo "=============================="
+echo "ASSET VERSION SOURCE CHECK"
+echo "=============================="
+grep -R "nssf-brand-dob-ui-20260622" -n \
+  nssf_smart_savers/www nssf_smart_savers/templates | head -80
 '
 ```
 
-**Expected:**
-- `date_of_birth`, `birthday_month`, `birthday_day` all found
-- All six NSSF hex colour values found in `smartlife.css`
-- Version string `nssf-brand-dob-ui-20260622` found in templates
+**Expected result:**
+- DOB fields appear in source
+- `birthday_month` and `birthday_day` appear
+- NSSF colours appear in CSS
+- Versioned asset string appears in templates
 
 ---
 
-## STEP 4 — Prove origin rendered HTML (bypasses Cloudflare)
+## STEP 4 — Prove origin HTML is correct
+
+This bypasses Cloudflare and checks what Frappe is serving locally.
 
 ```bash
-curl -fsSL \
-  -H "Host: nssf-smartlifeflexi.nile-gov-demo.com" \
-  "http://127.0.0.1/smartlife-self-serve?origin-test=$(date +%s)" \
-| grep -E "smartlife\.css|smartlife\.js|sl-choice-card|sl-stepper|\
+curl -fsSL -H "Host: nssf-smartlifeflexi.nile-gov-demo.com" \
+  "http://127.0.0.1/smartlife-self-serve?origin-proof=$(date +%s)" \
+| grep -E "smartlife.css|smartlife.js|sl-choice-card|sl-stepper|\
 Your Personal Details|Date of birth|Existing NSSF Member|\
 New Saver|Diaspora Saver|Informal Sector|Staff-Assisted"
 ```
 
-**Expected:** Matching HTML lines printed for each pattern.
+**Expected result:** It must print matching HTML lines.
 
-**If this fails** — Frappe is serving old HTML. Re-run clear-cache, clear-website-cache, migrate, build, restart. Do not blame Cloudflare until origin passes.
+If this fails, the problem is Frappe rendering, not Cloudflare. Re-run migrate, build, clear-cache, clear-website-cache and restart.
 
 ---
 
-## STEP 5 — Prove public rendered HTML (through Cloudflare)
+## STEP 5 — Prove public HTML is correct
+
+This checks the URL NSSF will actually see.
 
 ```bash
 BASE="https://nssf-smartlifeflexi.nile-gov-demo.com"
 
-curl -fsSL "$BASE/smartlife-self-serve?v=nssf-brand-dob-ui-$(date +%s)" \
-| grep -E "smartlife\.css|smartlife\.js|sl-choice-card|sl-stepper|\
+curl -fsSL "$BASE/smartlife-self-serve?v=public-proof-$(date +%s)" \
+| grep -E "smartlife.css|smartlife.js|sl-choice-card|sl-stepper|\
 Your Personal Details|Date of birth|Existing NSSF Member|\
 New Saver|Diaspora Saver|Informal Sector|Staff-Assisted"
 ```
 
-**Expected:** Same matching lines as Step 4.
+**Expected result:** It must print matching HTML lines.
 
-**If origin passes but public fails** — Cloudflare is serving stale HTML. Purge the Cloudflare cache for `nssf-smartlifeflexi.nile-gov-demo.com`, then re-run with a fresh `?v=` value.
+If origin passes but public fails, the issue is Cloudflare cache. Purge Cloudflare cache for `nssf-smartlifeflexi.nile-gov-demo.com`, then rerun the public proof with a fresh `?v=` value.
 
 ---
 
-## STEP 6 — Prove live CSS contains NSSF colours
+## STEP 6 — Prove live CSS has NSSF colours
 
 ```bash
-BASE="https://nssf-smartlifeflexi.nile-gov-demo.com"
-
-curl -fsSL \
-  "$BASE/assets/nssf_smart_savers/css/smartlife.css?v=nssf-colour-check-$(date +%s)" \
+curl -fsSL "$BASE/assets/nssf_smart_savers/css/smartlife.css?v=colour-proof-$(date +%s)" \
 | grep -E "#002060|#0F2C59|#00AEEF|#00A3E0|#00A859|#107C41"
 ```
 
-**Expected:** All six colour values returned.
+**Expected result:** It must show the NSSF colour values.
 
-**If this fails** — Asset build is stale or wrong file served. Re-run `bench build --app nssf_smart_savers`, clear caches, restart, retest.
+If this fails, the CSS file being served is stale. Run:
+
+```bash
+cd /home/frappe/frappe-bench
+bench build --app nssf_smart_savers
+bench --site nssf-smartlifeflexi.nile-gov-demo.com clear-cache
+bench --site nssf-smartlifeflexi.nile-gov-demo.com clear-website-cache
+sudo supervisorctl restart frappe-bench-web:
+sudo service nginx reload
+```
+
+Then test again.
 
 ---
 
@@ -179,25 +231,22 @@ export GIT_PAGER=cat PAGER=cat
 '
 ```
 
-**Expected:**
-- All route checks pass
-- Asset availability checks pass
-- Rendered HTML class and content checks pass
-- DOB source checks pass (date_of_birth present, sl-age absent)
+**Expected result:**
+- Routes pass
+- Assets pass
+- Rendered HTML checks pass
+- DOB checks pass
 - NSSF colour checks pass
-- Analytics PII block-list checks pass
+- PII analytics block-list checks pass
 
-**If smoke test fails but curl checks pass** — A specific content string in the test may not match the current page wording. Fix the smoke test assertion, not the product UI, unless the product genuinely changed.
+If smoke test fails but Steps 4, 5 and 6 pass, inspect whether the smoke test is too brittle. Do not change good product copy just to satisfy an outdated string check.
 
 ---
 
-## STEP 8 — Test DOB API with dummy data
+## STEP 8 — Test DOB API with dummy data only
 
 ```bash
-BASE="https://nssf-smartlifeflexi.nile-gov-demo.com"
-
-curl -sS -X POST \
-  "$BASE/api/method/nssf_smart_savers.api.submit_personal_details" \
+curl -sS -X POST "$BASE/api/method/nssf_smart_savers.api.submit_personal_details" \
   -H "Content-Type: application/json" \
   -d '{
     "first_name": "Demo",
@@ -214,98 +263,118 @@ curl -sS -X POST \
   }'
 ```
 
-**Expected response fields:**
-- `success: true`
-- `session_id` or anonymous reference
-- `age_band` (e.g. `"25-34"`)
+**The response may return:**
+- success / status
+- session id or lead reference
+- age band
 
-**Must NOT appear in response:**
-- `first_name`, `last_name`, `phone`, `email`
-- `date_of_birth`, `birthday_month`, `birthday_day`
-- Exact `age_years`
-
-**If API fails** — Check DocType fields exist after migration, check `api.py` field names, check Frappe error logs (`bench --site ... error-log`).
+**The response must not return:**
+- full name
+- phone
+- email
+- DOB
+- exact age
+- birthday day
+- birthday month
 
 ---
 
-## STEP 9 — Verify DocType fields in console
+## STEP 9 — Verify DocType fields in Frappe
 
 ```bash
 cd /home/frappe/frappe-bench
 bench --site nssf-smartlifeflexi.nile-gov-demo.com console
 ```
 
-Inside console:
+Inside the console, paste:
 
 ```python
 import frappe
+
 fields = [f.fieldname for f in frappe.get_meta("SmartLife Demo Lead").fields]
+
 missing = [x for x in [
-    "date_of_birth", "age_years", "age_band", "birthday_month", "birthday_day",
-    "gender", "primary_phone", "alternative_phone", "email",
-    "country_of_residence", "preferred_contact_channel", "consent_to_contact"
+    "date_of_birth",
+    "age_years",
+    "age_band",
+    "birthday_month",
+    "birthday_day",
+    "gender",
+    "primary_phone",
+    "alternative_phone",
+    "email",
+    "country_of_residence",
+    "preferred_contact_channel",
+    "consent_to_contact"
 ] if x not in fields]
-print("Missing fields:", missing)
+
+missing
+```
+
+**Expected result:**
+
+```python
+[]
+```
+
+Exit:
+
+```python
 exit()
-```
-
-**Expected:**
-
-```
-Missing fields: []
 ```
 
 ---
 
 ## STEP 10 — Browser acceptance test
 
-Open in Incognito (or Empty Cache and Hard Reload in Chrome DevTools):
+Open:
 
 ```
-https://nssf-smartlifeflexi.nile-gov-demo.com/smartlife-self-serve?v=nssf-brand-dob-ui-final
+https://nssf-smartlifeflexi.nile-gov-demo.com/smartlife-self-serve?v=final-nssf-dob-brand
 ```
 
-**Visual checklist:**
-- [ ] NSSF navy (`#002060`) dominates headings and structural elements
-- [ ] NSSF green (`#00A859`) used for CTA buttons, selected cards, active stepper step
-- [ ] Sky blue (`#00AEEF`) appears as focus ring / accent colour
-- [ ] Cards are styled — not raw HTML
-- [ ] Stepper is styled and labels are visible
-- [ ] Step 1 shows five saver type choice cards (Existing NSSF Member, New Saver, Diaspora Saver, Informal Sector, Staff-Assisted)
-- [ ] Step 2 header says "Your Personal Details"
-- [ ] Step 2 has a "Date of birth" date picker — no manual age number input
-- [ ] Selecting a DOB shows a calculated age preview in green
-- [ ] Next button advances the stepper
-- [ ] No PII appears in the URL at any step
-- [ ] Browser console has no fatal JavaScript errors
+Use Incognito or hard refresh. Mac Chrome: `Cmd + Shift + R`
+
+**Confirm visually:**
+- NSSF navy dominates headings and structure
+- NSSF green is used for CTAs, selected cards and active stepper
+- Sky blue appears as accent/focus colour
+- Cards are styled
+- Stepper is styled
+- Forms are styled
+- Step 2 says "Date of birth"
+- There is no manual age input
+- DOB selection shows calculated age preview
+- Next button works
+- No PII appears in URL
+- Browser console has no fatal JavaScript errors
 
 ---
 
-## Troubleshooting decision tree
+## Troubleshooting logic
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Origin curl fails | Frappe cache / wrong branch | clear-cache + clear-website-cache + migrate + build + restart |
-| Public curl fails, origin passes | Cloudflare cache | Purge Cloudflare cache for domain |
-| Browser looks old, both curls pass | Browser cache | Open Incognito / Empty Cache and Hard Reload |
-| CSS 404 | Asset not built | `bench build --app nssf_smart_savers` |
-| Smoke test content mismatch | Test wording vs template wording | Fix test assertion (not UI) |
-| API 500 | Missing DocType field | `bench migrate`, check console step 9 |
-| Merge conflict | Diverged branches | Resolve conflict manually, re-commit, push |
+| Origin curl fails | Frappe serving old HTML | Check branch + commit, then migrate / build / clear-cache / restart |
+| Origin passes, public curl fails | Cloudflare cache stale | Purge Cloudflare cache for domain |
+| Public curl passes, browser looks old | Browser cache | Incognito or Empty Cache and Hard Reload |
+| CSS colour check fails | Asset build or serving stale | `bench build --app nssf_smart_savers`, clear cache, restart |
+| Smoke test fails, curl proofs pass | Test checking outdated copy | Fix the smoke test assertion, not the UI |
+| Git says dubious ownership | Git ran as root | `sudo -u frappe -H bash -lc 'cd /home/frappe/frappe-bench/apps/nssf_smart_savers && git --no-pager status'` |
 
 ---
 
 ## Final acceptance criteria
 
-The deployment is complete only when **all ten** are true:
+Deployment is complete only when all 10 are true:
 
-1. `phase-1-smartlife-onboarding` contains the final DOB/NSSF brand commit
-2. `bench migrate` completes without error
-3. `bench build --app nssf_smart_savers` completes without error
-4. Origin rendered HTML contains `Date of birth`, `smartlife.css`, `smartlife.js`, `sl-choice-card`
+1. `phase-1-smartlife-onboarding` includes the latest Claude DOB/NSSF brand commits
+2. `bench migrate` passes
+3. `bench build --app nssf_smart_savers` passes
+4. Origin rendered HTML contains `Date of birth`, `smartlife.css`, `smartlife.js`, and `sl-choice-card`
 5. Public rendered HTML contains the same
-6. Live CSS contains `#002060`, `#0F2C59`, `#00AEEF`, `#00A3E0`, `#00A859`, `#107C41`
-7. Smoke test passes (or any remaining warning is non-blocking and explained)
-8. API returns `success: true` with `age_band` and no PII fields in response
-9. DocType console check returns empty missing-fields list
-10. Browser shows the styled NSSF-coloured interface with DOB picker and no manual age field
+6. Live CSS contains `#002060`, `#0F2C59`, `#00AEEF`, `#00A3E0`, `#00A859`, and `#107C41`
+7. Smoke test passes or leaves only a documented non-blocking warning
+8. Browser shows the styled NSSF interface
+9. DOB replaces Age and calculates age preview
+10. PII is stored server-side only and is not sent to analytics, URLs or console logs
