@@ -14,7 +14,8 @@
     'phone','phone_number','primary_phone','alt_phone','mobile','tel',
     'email','email_address',
     'nin','national_id','passport','member_number','nssf_number',
-    'dob','date_of_birth','birth_date',
+    'dob','date_of_birth','birth_date','birthday','birthday_day','birthday_month',
+    'age_years','exact_age','age',
     'otp','pin','password','secret',
     'account','bank_account','card','payment_ref','transaction_id',
     'address','location','street','postcode','zip'

@@ -136,7 +136,8 @@ check_content_in_page "/smartlife-self-serve" "Informal Sector"
 check_content_in_page "/smartlife-self-serve" "Staff-Assisted"
 check_content_in_page "/smartlife-self-serve" "Who are you saving as"
 check_content_in_page "/smartlife-self-serve" "Your Personal Details"
-check_content_in_page "/smartlife-self-serve" "First name"
+check_content_in_page "/smartlife-self-serve" "Date of birth"
+check_content_in_page "/smartlife-self-serve" "date_of_birth"
 check_content_in_page "/smartlife-self-serve" "Primary phone"
 check_content_in_page "/smartlife-self-serve" "consent"
 check_content_in_page "/smartlife-self-serve" "Your information is stored securely"
@@ -191,6 +192,21 @@ if [ -f "nssf_smart_savers/www/smartlife-self-serve.html" ]; then
   grep -q "Existing NSSF Member" nssf_smart_savers/www/smartlife-self-serve.html \
     && ok "Source: 'Existing NSSF Member' hardcoded in self-serve.html" \
     || fail "Source: 'Existing NSSF Member' NOT in self-serve.html"
+
+  grep -q "date_of_birth" nssf_smart_savers/www/smartlife-self-serve.html \
+    && ok "Source: date_of_birth field in self-serve.html" \
+    || fail "Source: date_of_birth MISSING from self-serve.html"
+
+  grep -qi "Date of birth" nssf_smart_savers/www/smartlife-self-serve.html \
+    && ok "Source: 'Date of birth' label in self-serve.html" \
+    || fail "Source: 'Date of birth' label MISSING from self-serve.html"
+
+  # Confirm manual age input is gone
+  if grep -q 'id="sl-age"' nssf_smart_savers/www/smartlife-self-serve.html; then
+    fail "Source: manual age input (id=sl-age) still present — should be replaced by DOB"
+  else
+    ok "Source: manual age input correctly removed from self-serve.html"
+  fi
 fi
 
 if [ -f "nssf_smart_savers/www/smartlife-staff-assist.html" ]; then
@@ -215,20 +231,42 @@ fi
 
 # Check no PII test values in source
 for f in nssf_smart_savers/www/smartlife-*.html; do
-  if grep -qiE "CM\d{7}[A-Z]{2}|\+2567[0-9]{8}|@gmail\.com|@yahoo\.com" "$f" 2>/dev/null; then
+  if grep -qiE "CM[0-9]{7}[A-Z]{2}|\+2567[0-9]{8}|@gmail\.com|@yahoo\.com" "$f" 2>/dev/null; then
     fail "Source: Possible PII test value detected in $f"
   else
-    ok "Source: No PII test values in $(basename $f)"
+    ok "Source: No PII test values in $(basename "$f")"
   fi
 done
 
 # CSS has all required design classes
 if [ -f "nssf_smart_savers/public/css/smartlife.css" ]; then
-  for CLASS in ".sl-page" ".sl-container" ".sl-card" ".sl-choice-card" ".sl-goal-card" ".sl-stepper" ".sl-btn-primary" ".sl-result-card" ".sl-table" ".sl-form" ".sl-input" ".sl-select"; do
+  for CLASS in ".sl-page" ".sl-container" ".sl-card" ".sl-choice-card" ".sl-goal-card" ".sl-stepper" ".sl-btn-primary" ".sl-result-card" ".sl-table" ".sl-form" ".sl-input" ".sl-select" ".sl-summary" ".sl-alert" ".sl-disclaimer"; do
     grep -q "$CLASS" nssf_smart_savers/public/css/smartlife.css \
       && ok "CSS: $CLASS defined" \
       || fail "CSS: $CLASS MISSING — design system incomplete"
   done
+fi
+
+# DocType JSON has DOB fields
+if [ -f "nssf_smart_savers/nssf_smart_savers/doctype/smartlife_demo_lead/smartlife_demo_lead.json" ]; then
+  grep -q "date_of_birth" nssf_smart_savers/nssf_smart_savers/doctype/smartlife_demo_lead/smartlife_demo_lead.json \
+    && ok "DocType: date_of_birth field present" \
+    || fail "DocType: date_of_birth field MISSING"
+
+  grep -q "birthday_month" nssf_smart_savers/nssf_smart_savers/doctype/smartlife_demo_lead/smartlife_demo_lead.json \
+    && ok "DocType: birthday_month field present" \
+    || fail "DocType: birthday_month field MISSING"
+fi
+
+# API has DOB handling
+if [ -f "nssf_smart_savers/api.py" ]; then
+  grep -q "date_of_birth" nssf_smart_savers/api.py \
+    && ok "API: date_of_birth handled in api.py" \
+    || fail "API: date_of_birth NOT found in api.py"
+
+  grep -q "birthday_month" nssf_smart_savers/api.py \
+    && ok "API: birthday_month computed in api.py" \
+    || fail "API: birthday_month NOT found in api.py"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────
@@ -246,6 +284,7 @@ if [ "$FAIL" -gt 0 ]; then
   echo "  3. Check that web_include_css/js in hooks.py are correct"
   echo "  4. Verify templates contain explicit <link rel=\"stylesheet\"> tags"
   echo "  5. Check Cloudflare cache — purge if needed"
+  echo "  6. If origin passes but public fails: Cloudflare is caching stale HTML"
   exit 1
 else
   echo -e "${GREEN}SMOKE TEST PASSED${NC}"

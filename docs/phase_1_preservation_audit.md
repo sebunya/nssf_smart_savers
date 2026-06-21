@@ -1,50 +1,67 @@
-# Phase 1 Preservation Audit
+# Phase 1 Preservation Audit — Updated
 
-**Date:** 2026-06-21  
-**Branch:** claude/cool-bell-t7n0hs  
+**Date:** 2026-06-21 (updated)
+**Branch:** claude/cool-bell-t7n0hs
+**HEAD at audit:** c1c34eb
 **Checkpoint branch:** safeguard-before-nssf-ui-pii-pass-20260621
 
-## Working routes (must remain functional)
-- /smartlife-flexi-demo — landing page, GTM present
-- /smartlife-self-serve — 5-step self-serve onboarding (expanding to 6)
-- /smartlife-staff-assist — staff-guided prospect session
-- /smartlife-projection-demo — savings projection calculator
-- /smartlife-checkout-demo — checkout summary
-- /smartlife-thank-you — confirmation page
-- /smartlife-support-demo — support / helpdesk
+## Routes that must remain live
+- /smartlife-flexi-demo
+- /smartlife-self-serve (6-step onboarding)
+- /smartlife-staff-assist
+- /smartlife-projection-demo
+- /smartlife-checkout-demo
+- /smartlife-thank-you
+- /smartlife-support-demo
 
-## Working assets (must remain at 200)
-- /assets/nssf_smart_savers/css/smartlife.css
-- /assets/nssf_smart_savers/js/smartlife.js
-- /assets/nssf_smart_savers/js/analytics_helper.js
+## Templates being touched in this pass
+- nssf_smart_savers/www/smartlife-self-serve.html (DOB + version bump)
+- nssf_smart_savers/www/smartlife-flexi-demo.html (version bump + no-cache)
+- nssf_smart_savers/www/smartlife-staff-assist.html (version bump + no-cache)
+- nssf_smart_savers/www/smartlife-projection-demo.html (version bump + no-cache)
+- nssf_smart_savers/www/smartlife-checkout-demo.html (version bump + no-cache)
+- nssf_smart_savers/www/smartlife-thank-you.html (version bump + no-cache)
+- nssf_smart_savers/www/smartlife-support-demo.html (version bump + no-cache)
+- nssf_smart_savers/templates/includes/smartlife_assets.html (version bump)
 
-## Working APIs (must remain functional)
-- submit_self_serve_step (whitelist)
-- get_savings_projection (whitelist)
-- submit_staff_session (whitelist)
-- submit_checkout (whitelist)
+## CSS/JS files being touched
+- nssf_smart_savers/public/css/smartlife.css (brand corrections, .sl-summary alias)
+- nssf_smart_savers/public/js/analytics_helper.js (DOB added to PII block-list)
 
-## Integration adapters (do not break)
-- integrations/pesapal_adapter.py
-- integrations/phahapa_sms_adapter.py
-- integrations/zeptomail_adapter.py
-- integrations/crm_adapter.py
-- integrations/helpdesk_adapter.py
+## API files being touched
+- nssf_smart_savers/api.py (DOB-based age calculation)
 
-## DocTypes (do not delete, only extend)
-- Demo Lead, Onboarding Session, Savings Plan, Projection Result,
-  Staff Session Log, Demo Notification, Smart Savers Settings,
-  Demo Checkout Session, Demo Payment Log, Demo Analytics Event
+## DocTypes being touched
+- SmartLife Demo Lead: add date_of_birth, age_years, age_band, birthday_month, birthday_day fields
+  (old fields preserved — never deleted)
 
-## Safety invariants (non-negotiable)
+## Adapter files being touched
+- nssf_smart_savers/integrations/phahapa_sms_adapter.py
+- nssf_smart_savers/integrations/zeptomail_adapter.py
+- nssf_smart_savers/integrations/crm_adapter.py
+
+## What must NOT regress
+- All 7 routes returning HTTP 200
+- /assets/nssf_smart_savers/css/smartlife.css returning 200
+- /assets/nssf_smart_savers/js/smartlife.js returning 200
+- /assets/nssf_smart_savers/js/analytics_helper.js returning 200
+- CSS/JS injection in rendered HTML of all pages
+- PII never reaching GTM/GA4/Clarity
+- All content string smoke test checks
+- Integration adapters (pesapal, phahapa, zeptomail, crm, helpdesk)
+- DocType naming_series validity
+
+## New version string
+?v=nssf-brand-dob-ui-20260622
+
+## Cloud/Cloudflare note
+This repository runs in a cloud dev environment. Changes must be committed and
+pushed for deployment. If public URL passes but origin fails (or vice versa),
+root cause is likely Cloudflare caching stale HTML. Remedy: purge Cloudflare
+cache for nssf-smartlifeflexi.nile-gov-demo.com after deploy + bench clear-website-cache.
+
+## Safety invariants (unchanged)
 - Every public page shows "Prototype environment" notice
-- Projection pages show indicative disclaimer
-- PII NEVER reaches GTM/GA4/Clarity/URL query strings/logs
-- analytics_helper.js blocks: name, phone, email, nin keys
-
-## Phase 5 changes
-- CSS variables renamed to --nssf-* brand palette
-- Asset cache-bust: ?v=nssf-brand-pii-safe-20260622
-- Self-serve expanded to 6 steps (Personal Details as Step 2)
-- Staff-assist gets PII fields + output enhancements
-- analytics_helper.js PII block-list made explicit
+- Projection pages show "Projection is indicative" disclaimer
+- PII (DOB, name, phone, email, NIN, exact age) NEVER goes to GTM/GA4/Clarity/URL params
+- analytics_helper.js maintains explicit PII + DOB block-list
