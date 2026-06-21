@@ -108,6 +108,7 @@ check_class_in_page() {
 check_class_in_page "/smartlife-self-serve"      "sl-choice-card"
 check_class_in_page "/smartlife-self-serve"      "sl-stepper"
 check_class_in_page "/smartlife-self-serve"      "sl-step-actions"
+check_class_in_page "/smartlife-self-serve"      "sl-details-form"
 check_class_in_page "/smartlife-staff-assist"    "sl-form"
 check_class_in_page "/smartlife-staff-assist"    "sl-select"
 check_class_in_page "/smartlife-projection-demo" "sl-result-card"
@@ -127,13 +128,18 @@ check_content_in_page() {
   fi
 }
 
-# Self-serve: 5 saver types
+# Self-serve: saver types + personal details step
 check_content_in_page "/smartlife-self-serve" "Existing NSSF Member"
 check_content_in_page "/smartlife-self-serve" "New Saver"
 check_content_in_page "/smartlife-self-serve" "Diaspora Saver"
 check_content_in_page "/smartlife-self-serve" "Informal Sector"
 check_content_in_page "/smartlife-self-serve" "Staff-Assisted"
 check_content_in_page "/smartlife-self-serve" "Who are you saving as"
+check_content_in_page "/smartlife-self-serve" "Your Personal Details"
+check_content_in_page "/smartlife-self-serve" "First name"
+check_content_in_page "/smartlife-self-serve" "Primary phone"
+check_content_in_page "/smartlife-self-serve" "consent"
+check_content_in_page "/smartlife-self-serve" "Your information is stored securely"
 
 # Staff assist
 check_content_in_page "/smartlife-staff-assist" "Staff-Guided Session"
