@@ -82,6 +82,9 @@ window.SLCheckout = {
           if (result.success) {
             document.getElementById('sl-payment-success').style.display = 'block';
             document.getElementById('sl-payment-ref').textContent = 'Reference: ' + (result.payment_reference || '');
+            // Pass goal/frequency to thank-you page
+            var tyUrl = '/smartlife-thank-you?goal=' + encodeURIComponent(goal) + '&frequency=' + encodeURIComponent(frequency);
+            document.querySelector('#sl-payment-success a').href = tyUrl;
             if (window.SmartLifeAnalytics) SmartLifeAnalytics.paymentSimulated('success', { frequency: frequency, goal_category: goal });
           } else {
             document.getElementById('sl-payment-error').style.display = 'block';
