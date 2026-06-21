@@ -1,0 +1,32 @@
+{
+  "name": "SmartLife Follow Up Task",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "naming_series:",
+  "naming_series": "SL-TASK-.YYYY.-.####",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "naming_series", "task_type", "demo_lead", "staff_session", "due_date", "assigned_to",
+    "priority", "status", "notes", "outcome", "is_demo"
+  ],
+  "fields": [
+    {"fieldname": "naming_series", "fieldtype": "Series", "label": "Series", "options": "SL-TASK-.YYYY.-.####"},
+    {"fieldname": "task_type", "fieldtype": "Select", "label": "Task Type", "options": "\nCall\nWhatsApp\nEmail\nWalk-in\nEscalate to Helpdesk"},
+    {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
+    {"fieldname": "staff_session", "fieldtype": "Link", "label": "Staff Session", "options": "SmartLife Staff Assist Session"},
+    {"fieldname": "due_date", "fieldtype": "Date", "label": "Due Date"},
+    {"fieldname": "assigned_to", "fieldtype": "Data", "label": "Assigned To"},
+    {"fieldname": "priority", "fieldtype": "Select", "label": "Priority", "options": "\nHigh\nMedium\nLow"},
+    {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "\nOpen\nIn Progress\nDone\nCancelled"},
+    {"fieldname": "notes", "fieldtype": "Small Text", "label": "Notes"},
+    {"fieldname": "outcome", "fieldtype": "Small Text", "label": "Outcome"},
+    {"fieldname": "is_demo", "fieldtype": "Check", "label": "Is Demo", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

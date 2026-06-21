@@ -1,0 +1,39 @@
+{
+  "name": "SmartLife Personalisation Rule",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "field:rule_name",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "rule_name", "segment", "goal_category", "target_band", "period_band",
+    "source_category", "industry_category", "country_band", "staff_assisted",
+    "priority", "hero_copy", "goal_copy", "recommended_frequency",
+    "next_best_action", "cta_label", "cta_color", "enabled"
+  ],
+  "fields": [
+    {"fieldname": "rule_name", "fieldtype": "Data", "label": "Rule Name", "reqd": 1, "unique": 1},
+    {"fieldname": "segment", "fieldtype": "Data", "label": "Segment"},
+    {"fieldname": "goal_category", "fieldtype": "Data", "label": "Goal Category"},
+    {"fieldname": "target_band", "fieldtype": "Data", "label": "Target Band"},
+    {"fieldname": "period_band", "fieldtype": "Data", "label": "Period Band"},
+    {"fieldname": "source_category", "fieldtype": "Data", "label": "Source Category"},
+    {"fieldname": "industry_category", "fieldtype": "Data", "label": "Industry Category"},
+    {"fieldname": "country_band", "fieldtype": "Data", "label": "Country Band"},
+    {"fieldname": "staff_assisted", "fieldtype": "Check", "label": "Staff Assisted"},
+    {"fieldname": "priority", "fieldtype": "Int", "label": "Priority"},
+    {"fieldname": "hero_copy", "fieldtype": "Small Text", "label": "Hero Copy"},
+    {"fieldname": "goal_copy", "fieldtype": "Small Text", "label": "Goal Copy"},
+    {"fieldname": "recommended_frequency", "fieldtype": "Data", "label": "Recommended Frequency"},
+    {"fieldname": "next_best_action", "fieldtype": "Small Text", "label": "Next Best Action"},
+    {"fieldname": "cta_label", "fieldtype": "Data", "label": "CTA Label"},
+    {"fieldname": "cta_color", "fieldtype": "Data", "label": "CTA Color"},
+    {"fieldname": "enabled", "fieldtype": "Check", "label": "Enabled", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

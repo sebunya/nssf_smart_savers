@@ -1,0 +1,31 @@
+{
+  "name": "SmartLife Dropoff Event",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "hash",
+  "is_submittable": 0,
+  "track_changes": 0,
+  "custom": 0,
+  "field_order": [
+    "journey_type", "step_name", "segment", "goal", "session_id",
+    "dropoff_reason", "recovery_attempted", "recovery_action",
+    "lead_created", "demo_lead"
+  ],
+  "fields": [
+    {"fieldname": "journey_type", "fieldtype": "Select", "label": "Journey Type", "options": "\nself_serve\nstaff_assist\nprojection\ncheckout\nsupport"},
+    {"fieldname": "step_name", "fieldtype": "Data", "label": "Step Name"},
+    {"fieldname": "segment", "fieldtype": "Data", "label": "Segment"},
+    {"fieldname": "goal", "fieldtype": "Data", "label": "Goal"},
+    {"fieldname": "session_id", "fieldtype": "Data", "label": "Session ID"},
+    {"fieldname": "dropoff_reason", "fieldtype": "Data", "label": "Dropoff Reason"},
+    {"fieldname": "recovery_attempted", "fieldtype": "Check", "label": "Recovery Attempted"},
+    {"fieldname": "recovery_action", "fieldtype": "Data", "label": "Recovery Action"},
+    {"fieldname": "lead_created", "fieldtype": "Check", "label": "Lead Created"},
+    {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

@@ -1,0 +1,168 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+<div class="smartlife-projection-disclaimer">
+  Projection is indicative for demo purposes only. Actual returns may vary.
+</div>
+
+<div class="smartlife-projection-wrapper">
+  <h1>Savings Projection Calculator</h1>
+  <p>See how your SmartLife Flexi savings grow over time.</p>
+
+  <div class="sl-projection-form">
+    <div class="sl-field">
+      <label>Savings Goal</label>
+      <select id="proj-goal">
+        {% for goal in goals %}
+        <option value="{{ goal.key }}">{{ goal.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="sl-field">
+      <label>Contribution Frequency</label>
+      <select id="proj-frequency" onchange="SLProjection.calculate()">
+        {% for freq in frequencies %}
+        <option value="{{ freq.key }}" {% if freq.key == 'monthly' %}selected{% endif %}>{{ freq.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="sl-field">
+      <label>Contribution Amount (UGX per period)</label>
+      <input type="number" id="proj-contribution" value="50000" min="5000" oninput="SLProjection.debounce()">
+    </div>
+    <div class="sl-field">
+      <label>Initial Deposit (UGX, optional)</label>
+      <input type="number" id="proj-initial" value="0" min="0" oninput="SLProjection.debounce()">
+    </div>
+    <div class="sl-field">
+      <label>Savings Period (years)</label>
+      <input type="number" id="proj-years" value="5" min="1" max="40" oninput="SLProjection.debounce()">
+    </div>
+  </div>
+
+  <div class="smartlife-projection-result">
+    <div class="sl-result-card">
+      <div class="sl-result-label">Total Contributions</div>
+      <div class="sl-result-value" id="proj-total-contributions">—</div>
+    </div>
+    <div class="sl-result-card sl-result-card-highlight">
+      <div class="sl-result-label">Projected Value</div>
+      <div class="sl-result-value" id="proj-projected-value">—</div>
+    </div>
+    <div class="sl-result-card">
+      <div class="sl-result-label">Indicative Return</div>
+      <div class="sl-result-value" id="proj-indicative-return">—</div>
+    </div>
+  </div>
+
+  <div class="sl-comparison-section">
+    <h3>Frequency Comparison</h3>
+    <p>Same total monthly-equivalent investment across frequencies:</p>
+    <table class="sl-comparison-table" id="proj-comparison-table">
+      <thead>
+        <tr>
+          <th>Frequency</th>
+          <th>Per Period</th>
+          <th>Projected Value</th>
+          <th>Indicative Return</th>
+        </tr>
+      </thead>
+      <tbody id="proj-comparison-body">
+        <tr><td colspan="4">Calculate above to see comparison</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sl-milestone-section">
+    <h3>Goal Milestones</h3>
+    <div id="proj-milestones"></div>
+  </div>
+
+  <div class="sl-nudge-message">
+    <strong>💡 SmartLife Insight:</strong> Starting today with even a small amount puts you ahead. The earlier you start, the more compound interest works in your favour.
+  </div>
+
+  <div class="sl-projection-cta">
+    <a href="/smartlife-self-serve" class="smartlife-btn-primary" data-smartlife-event="cta_click" data-cta="projection_to_self_serve">
+      Start Saving Now
+    </a>
+  </div>
+</div>
+
+<script>
+window.SLProjection = {
+  _timer: null,
+  debounce: function() {
+    clearTimeout(SLProjection._timer);
+    SLProjection._timer = setTimeout(SLProjection.calculate, 600);
+  },
+  calculate: function() {
+    var contrib = document.getElementById('proj-contribution').value || '0';
+    var initial = document.getElementById('proj-initial').value || '0';
+    var freq = document.getElementById('proj-frequency').value;
+    var years = document.getElementById('proj-years').value || '1';
+
+    if (parseFloat(contrib) < 5000) return;
+
+    fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + initial +
+      '&periodic_contribution=' + contrib + '&frequency=' + freq + '&years=' + years)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var msg = data.message || data;
+        document.getElementById('proj-total-contributions').textContent = 'UGX ' + Math.round(msg.total_contributions || 0).toLocaleString();
+        document.getElementById('proj-projected-value').textContent = 'UGX ' + Math.round(msg.projected_value || 0).toLocaleString();
+        document.getElementById('proj-indicative-return').textContent = 'UGX ' + Math.round(msg.indicative_return || 0).toLocaleString();
+        SLProjection.updateMilestones(msg.projected_value, years);
+        SLProjection.updateComparison(contrib, initial, years);
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.projectionViewed({ frequency: freq, period_band: years <= 1 ? '1y' : years <= 3 ? '1-3y' : years <= 5 ? '3-5y' : '5-10y' });
+      })
+      .catch(function(e) { console.error('Projection error', e); });
+  },
+  updateMilestones: function(projectedValue, years) {
+    var milestones = [500000, 1000000, 5000000, 10000000, 50000000];
+    var html = '';
+    milestones.forEach(function(m) {
+      var reached = projectedValue >= m;
+      html += '<div class="sl-milestone ' + (reached ? 'reached' : '') + '">' +
+        (reached ? '✅' : '⬜') + ' UGX ' + m.toLocaleString() + '</div>';
+    });
+    document.getElementById('proj-milestones').innerHTML = html;
+  },
+  updateComparison: function(contrib, initial, years) {
+    var freqs = [
+      {key: 'daily', label: 'Daily', n: 365},
+      {key: 'weekly', label: 'Weekly', n: 52},
+      {key: 'monthly', label: 'Monthly', n: 12},
+      {key: 'annually', label: 'Annually', n: 1}
+    ];
+    var monthlyEquiv = parseFloat(contrib) * 12 / document.querySelector('#proj-frequency option:checked').textContent.trim().replace(/Daily/, '365').replace(/Weekly/, '52').replace(/Monthly/, '12').replace(/Quarterly/, '4').replace(/Annually/, '1');
+    var tbody = document.getElementById('proj-comparison-body');
+    tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+    var rows = [];
+    var done = 0;
+    freqs.forEach(function(f) {
+      var perPeriod = Math.round(parseFloat(contrib));
+      fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + initial +
+        '&periodic_contribution=' + perPeriod + '&frequency=' + f.key + '&years=' + years)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var msg = data.message || data;
+          rows.push('<tr><td>' + f.label + '</td><td>UGX ' + perPeriod.toLocaleString() + '</td><td>UGX ' +
+            Math.round(msg.projected_value || 0).toLocaleString() + '</td><td>UGX ' +
+            Math.round(msg.indicative_return || 0).toLocaleString() + '</td></tr>');
+          done++;
+          if (done === freqs.length) tbody.innerHTML = rows.join('');
+        });
+    });
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  SLProjection.calculate();
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.demoView({ journey_type: 'projection', step_name: 'projection_calculator' });
+});
+</script>
+{% endblock %}

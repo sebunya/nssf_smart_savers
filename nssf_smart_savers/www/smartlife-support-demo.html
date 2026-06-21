@@ -1,0 +1,108 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-support-wrapper">
+  <h1>Support &amp; Help</h1>
+  <p>Get help with your SmartLife Flexi journey. This is a demo support form — no real tickets are raised.</p>
+
+  <div class="sl-support-form-section">
+    <h2>Submit a Support Request</h2>
+    <div class="smartlife-form">
+      <div class="sl-field">
+        <label>Subject (no personal details)</label>
+        <input type="text" id="sl-support-subject" placeholder="e.g. Question about frequency options" maxlength="200">
+      </div>
+      <div class="sl-field">
+        <label>Issue Type</label>
+        <select id="sl-support-issue-type">
+          <option value="general">General Question</option>
+          <option value="projection">Projection / Calculator</option>
+          <option value="payment">Payment / Checkout</option>
+          <option value="registration">Registration</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>Preferred Channel</label>
+        <select id="sl-support-channel">
+          <option value="Phone">Phone</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="Email">Email</option>
+          <option value="Walk-in">Walk-in</option>
+        </select>
+      </div>
+      <div class="sl-field">
+        <label>
+          <input type="checkbox" id="sl-staff-assist-req"> I'd like staff assistance
+        </label>
+      </div>
+      <div class="sl-field">
+        <button class="smartlife-btn-primary" onclick="SLSupport.submitRequest()">
+          Submit Request (Demo)
+        </button>
+      </div>
+    </div>
+    <div class="sl-support-result" id="sl-support-result" style="display:none">
+      <div class="sl-success-icon">✅</div>
+      <h3>Request Logged (Demo)</h3>
+      <p id="sl-support-message"></p>
+      <p id="sl-support-ref"></p>
+    </div>
+  </div>
+
+  <div class="sl-faq-section">
+    <h2>Frequently Asked Questions</h2>
+    {% for faq in faqs %}
+    <div class="sl-faq-item">
+      <div class="sl-faq-question" onclick="this.nextElementSibling.classList.toggle('open')">
+        {{ faq.q }}
+      </div>
+      <div class="sl-faq-answer">{{ faq.a }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="sl-escalation-section">
+    <h3>Need more help?</h3>
+    <a href="/smartlife-staff-assist" class="smartlife-btn-primary">Talk to a Staff Advisor</a>
+  </div>
+</div>
+
+<script>
+window.SLSupport = {
+  submitRequest: function() {
+    var subject = document.getElementById('sl-support-subject').value;
+    var channel = document.getElementById('sl-support-channel').value;
+    var staffAssist = document.getElementById('sl-staff-assist-req').checked;
+
+    if (!subject.trim()) {
+      alert('Please enter a subject.');
+      return;
+    }
+
+    fetch('/api/method/nssf_smart_savers.api.request_support?subject=' + encodeURIComponent(subject) +
+      '&channel_preference=' + channel + '&staff_assist=' + staffAssist)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var result = data.message || data;
+        document.getElementById('sl-support-result').style.display = 'block';
+        document.getElementById('sl-support-message').textContent = result.message || 'Request submitted.';
+        document.getElementById('sl-support-ref').textContent = result.ticket_ref ? 'Reference: ' + result.ticket_ref : '';
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.supportRequested({ journey_type: 'support', step_name: 'support_form' });
+      })
+      .catch(function(e) {
+        alert('Error submitting request. See console.');
+        console.error(e);
+      });
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.demoView({ journey_type: 'support', step_name: 'support_landing' });
+});
+</script>
+{% endblock %}

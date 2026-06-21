@@ -1,0 +1,33 @@
+{
+  "name": "SmartLife Demo Notification",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "hash",
+  "is_submittable": 0,
+  "track_changes": 0,
+  "custom": 0,
+  "field_order": [
+    "notification_type", "channel", "recipient_type", "event_trigger",
+    "template_name", "rendered_body", "status", "simulated", "sent_at",
+    "demo_lead", "staff_session", "error_message"
+  ],
+  "fields": [
+    {"fieldname": "notification_type", "fieldtype": "Select", "label": "Notification Type", "options": "\nSMS\nEmail\nWhatsApp"},
+    {"fieldname": "channel", "fieldtype": "Select", "label": "Channel", "options": "\nPhahapa SMS\nZeptoMail Email\nDemo Log"},
+    {"fieldname": "recipient_type", "fieldtype": "Select", "label": "Recipient Type", "options": "\nself_serve\nstaff_assist\nsupport"},
+    {"fieldname": "event_trigger", "fieldtype": "Data", "label": "Event Trigger"},
+    {"fieldname": "template_name", "fieldtype": "Data", "label": "Template Name"},
+    {"fieldname": "rendered_body", "fieldtype": "Long Text", "label": "Rendered Body"},
+    {"fieldname": "status", "fieldtype": "Select", "label": "Status", "options": "\nQueued\nSent\nFailed\nSimulated", "default": "Simulated"},
+    {"fieldname": "simulated", "fieldtype": "Check", "label": "Simulated", "default": "1"},
+    {"fieldname": "sent_at", "fieldtype": "Datetime", "label": "Sent At"},
+    {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
+    {"fieldname": "staff_session", "fieldtype": "Link", "label": "Staff Session", "options": "SmartLife Staff Assist Session"},
+    {"fieldname": "error_message", "fieldtype": "Data", "label": "Error Message"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

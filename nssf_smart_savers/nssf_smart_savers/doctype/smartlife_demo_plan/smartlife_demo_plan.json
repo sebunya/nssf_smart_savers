@@ -1,0 +1,39 @@
+{
+  "name": "SmartLife Demo Plan",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "hash",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "demo_lead", "hero_copy", "goal_copy", "recommended_frequency",
+    "recommended_rhythm", "next_best_action", "staff_script", "objection_response",
+    "cta_label", "segment_label", "goal_label", "projected_value",
+    "total_contributions", "indicative_return", "period_years", "annual_rate_pct", "is_demo"
+  ],
+  "fields": [
+    {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
+    {"fieldname": "hero_copy", "fieldtype": "Small Text", "label": "Hero Copy"},
+    {"fieldname": "goal_copy", "fieldtype": "Small Text", "label": "Goal Copy"},
+    {"fieldname": "recommended_frequency", "fieldtype": "Data", "label": "Recommended Frequency"},
+    {"fieldname": "recommended_rhythm", "fieldtype": "Small Text", "label": "Recommended Rhythm"},
+    {"fieldname": "next_best_action", "fieldtype": "Small Text", "label": "Next Best Action"},
+    {"fieldname": "staff_script", "fieldtype": "Long Text", "label": "Staff Script"},
+    {"fieldname": "objection_response", "fieldtype": "Small Text", "label": "Objection Response"},
+    {"fieldname": "cta_label", "fieldtype": "Data", "label": "CTA Label"},
+    {"fieldname": "segment_label", "fieldtype": "Data", "label": "Segment Label"},
+    {"fieldname": "goal_label", "fieldtype": "Data", "label": "Goal Label"},
+    {"fieldname": "projected_value", "fieldtype": "Currency", "label": "Projected Value"},
+    {"fieldname": "total_contributions", "fieldtype": "Currency", "label": "Total Contributions"},
+    {"fieldname": "indicative_return", "fieldtype": "Currency", "label": "Indicative Return"},
+    {"fieldname": "period_years", "fieldtype": "Int", "label": "Period Years"},
+    {"fieldname": "annual_rate_pct", "fieldtype": "Float", "label": "Annual Rate Pct", "default": "10"},
+    {"fieldname": "is_demo", "fieldtype": "Check", "label": "Is Demo", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

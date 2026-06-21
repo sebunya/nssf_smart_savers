@@ -1,0 +1,528 @@
+/* SmartLife Flexi - Main CSS
+   NSSF-inspired brand: deep green #1a5c38, gold #c9a227 */
+
+:root {
+  --sl-green: #1a5c38;
+  --sl-green-light: #2d7a50;
+  --sl-gold: #c9a227;
+  --sl-gold-light: #e8c04a;
+  --sl-white: #ffffff;
+  --sl-grey-light: #f5f5f5;
+  --sl-grey: #e0e0e0;
+  --sl-text: #222222;
+  --sl-text-muted: #666666;
+  --sl-warning-bg: #fff8e1;
+  --sl-warning-border: #f59e0b;
+  --sl-success: #16a34a;
+  --sl-error: #dc2626;
+  --sl-radius: 8px;
+  --sl-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* ---- Demo Notice Banner ---- */
+.smartlife-demo-notice {
+  background: var(--sl-warning-bg);
+  border-left: 4px solid var(--sl-warning-border);
+  color: #7c5e0a;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border-radius: var(--sl-radius);
+}
+
+/* ---- Projection Disclaimer ---- */
+.smartlife-projection-disclaimer {
+  background: var(--sl-grey-light);
+  color: var(--sl-text-muted);
+  font-style: italic;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: var(--sl-radius);
+  margin-bottom: 12px;
+}
+
+/* ---- Buttons ---- */
+.smartlife-btn-primary {
+  display: inline-block;
+  background: var(--sl-green);
+  color: var(--sl-white);
+  padding: 12px 28px;
+  border-radius: var(--sl-radius);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.smartlife-btn-primary:hover {
+  background: var(--sl-green-light);
+  transform: translateY(-1px);
+  color: var(--sl-white);
+  text-decoration: none;
+}
+.smartlife-btn-secondary {
+  display: inline-block;
+  background: transparent;
+  color: var(--sl-green);
+  padding: 12px 28px;
+  border-radius: var(--sl-radius);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 2px solid var(--sl-green);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.smartlife-btn-secondary:hover {
+  background: var(--sl-green);
+  color: var(--sl-white);
+  text-decoration: none;
+}
+button.smartlife-btn-primary, button.smartlife-btn-secondary {
+  font-family: inherit;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Hero ---- */
+.smartlife-hero {
+  background: linear-gradient(135deg, var(--sl-green) 0%, var(--sl-green-light) 100%);
+  color: var(--sl-white);
+  padding: 60px 24px;
+  text-align: center;
+  border-radius: var(--sl-radius);
+  margin-bottom: 40px;
+}
+.smartlife-hero-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--sl-white);
+}
+.smartlife-hero-subtitle {
+  font-size: 22px;
+  color: var(--sl-gold-light);
+  margin-bottom: 16px;
+}
+.smartlife-hero-desc {
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto 32px;
+  opacity: 0.9;
+}
+.smartlife-hero-ctas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.smartlife-hero .smartlife-btn-secondary {
+  color: var(--sl-white);
+  border-color: var(--sl-white);
+}
+.smartlife-hero .smartlife-btn-secondary:hover {
+  background: var(--sl-white);
+  color: var(--sl-green);
+}
+
+/* ---- Sections ---- */
+.smartlife-section {
+  margin-bottom: 48px;
+}
+.smartlife-section-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--sl-green);
+  margin-bottom: 24px;
+}
+
+/* ---- Cards ---- */
+.smartlife-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.smartlife-card {
+  background: var(--sl-white);
+  border: 2px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.smartlife-card:hover, .smartlife-card.selected {
+  border-color: var(--sl-green);
+  background: #f0f9f5;
+  box-shadow: var(--sl-shadow);
+}
+.smartlife-card-icon { font-size: 28px; }
+.smartlife-card-label { font-weight: 600; font-size: 14px; color: var(--sl-text); }
+.smartlife-card-desc { font-size: 12px; color: var(--sl-text-muted); }
+
+/* ---- Goal Grid ---- */
+.smartlife-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+.smartlife-goal-card {
+  background: var(--sl-white);
+  border: 2px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.smartlife-goal-card:hover, .smartlife-goal-card.selected {
+  border-color: var(--sl-gold);
+  background: #fffbf0;
+}
+.smartlife-goal-icon { font-size: 24px; }
+.smartlife-goal-label { font-size: 12px; font-weight: 600; color: var(--sl-text); }
+
+/* ---- Features ---- */
+.smartlife-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+.smartlife-feature {
+  background: var(--sl-white);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  box-shadow: var(--sl-shadow);
+  text-align: center;
+}
+.smartlife-feature-icon { font-size: 36px; display: block; margin-bottom: 12px; }
+
+/* ---- Stepper ---- */
+.smartlife-stepper {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--sl-grey);
+}
+.sl-step {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sl-text-muted);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+.sl-step.active {
+  color: var(--sl-green);
+  border-bottom-color: var(--sl-green);
+}
+
+/* ---- Step Content ---- */
+.sl-step-content { display: none; }
+.sl-step-content.active { display: block; }
+
+/* ---- Form ---- */
+.smartlife-form {
+  max-width: 540px;
+}
+.sl-field {
+  margin-bottom: 20px;
+}
+.sl-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--sl-text);
+}
+.sl-field input, .sl-field select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  font-size: 15px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.sl-field input:focus, .sl-field select:focus {
+  border-color: var(--sl-green);
+  outline: none;
+}
+.sl-pii-warning {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 8px 12px;
+  border-radius: var(--sl-radius);
+  font-size: 13px;
+}
+
+/* ---- Navigation ---- */
+.sl-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* ---- Projection Results ---- */
+.smartlife-projection-result {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.sl-result-card {
+  background: var(--sl-white);
+  border: 1px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--sl-shadow);
+}
+.sl-result-card-highlight {
+  background: var(--sl-green);
+  color: var(--sl-white);
+  border-color: var(--sl-green);
+}
+.sl-result-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+.sl-result-value {
+  font-size: 22px;
+  font-weight: 800;
+}
+.sl-result-card-highlight .sl-result-label { color: rgba(255,255,255,0.8); }
+
+/* ---- Staff Script Box ---- */
+.smartlife-staff-script {
+  font-family: 'Courier New', monospace;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 20px;
+  border-radius: var(--sl-radius);
+  font-size: 13px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin: 16px 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* ---- Plan Card ---- */
+.sl-plan-card {
+  background: var(--sl-white);
+  border: 2px solid var(--sl-green);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.sl-plan-hero {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sl-green);
+  margin-bottom: 12px;
+}
+.sl-plan-goal, .sl-plan-rhythm {
+  color: var(--sl-text-muted);
+  margin-bottom: 8px;
+}
+.sl-plan-nba {
+  font-weight: 600;
+  color: var(--sl-gold);
+}
+
+/* ---- Comparison Table ---- */
+.sl-comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+.sl-comparison-table th, .sl-comparison-table td {
+  padding: 10px 12px;
+  border: 1px solid var(--sl-grey);
+  text-align: left;
+}
+.sl-comparison-table th {
+  background: var(--sl-grey-light);
+  font-weight: 600;
+}
+
+/* ---- Milestone ---- */
+.sl-milestone {
+  display: inline-block;
+  margin: 4px 8px;
+  padding: 4px 12px;
+  background: var(--sl-grey-light);
+  border-radius: 20px;
+  font-size: 13px;
+}
+.sl-milestone.reached {
+  background: #d1fae5;
+  color: var(--sl-success);
+}
+
+/* ---- Nudge ---- */
+.sl-nudge-message {
+  background: var(--sl-warning-bg);
+  border-left: 4px solid var(--sl-gold);
+  padding: 16px;
+  border-radius: var(--sl-radius);
+  margin: 24px 0;
+  font-size: 15px;
+}
+
+/* ---- Checkout ---- */
+.smartlife-checkout-wrapper { max-width: 600px; margin: 0 auto; }
+.sl-checkout-demo-badge {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 8px 16px;
+  border-radius: var(--sl-radius);
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.sl-checkout-summary {
+  background: var(--sl-grey-light);
+  border-radius: var(--sl-radius);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.sl-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--sl-grey);
+}
+.sl-payment-options { margin: 12px 0; }
+.sl-payment-option {
+  display: block;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 2px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  cursor: pointer;
+}
+.sl-payment-option:has(input:checked) { border-color: var(--sl-green); background: #f0f9f5; }
+.sl-checkout-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+.sl-payment-status { text-align: center; padding: 40px; }
+.sl-spinner {
+  width: 40px; height: 40px;
+  border: 4px solid var(--sl-grey);
+  border-top-color: var(--sl-green);
+  border-radius: 50%;
+  animation: sl-spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes sl-spin { to { transform: rotate(360deg); } }
+.sl-success-icon, .sl-error-icon { font-size: 48px; margin-bottom: 16px; }
+.sl-demo-tag { font-size: 13px; color: var(--sl-text-muted); font-style: italic; }
+
+/* ---- Thank You ---- */
+.smartlife-thankyou-wrapper { max-width: 600px; margin: 0 auto; text-align: center; }
+.sl-success-animation { margin: 32px 0; }
+.sl-success-circle { font-size: 64px; }
+.sl-thankyou-title { font-size: 36px; font-weight: 800; color: var(--sl-green); }
+.sl-thankyou-subtitle { font-size: 18px; color: var(--sl-text-muted); margin-bottom: 24px; }
+.sl-demo-badge {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 24px;
+}
+.sl-plan-summary-card {
+  background: var(--sl-grey-light);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+.sl-status-active { color: var(--sl-success); font-weight: 700; }
+.sl-next-steps { text-align: left; margin-bottom: 32px; }
+.sl-next-steps ol { padding-left: 20px; line-height: 2; }
+.sl-thankyou-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+/* ---- Support / FAQ ---- */
+.smartlife-support-wrapper { max-width: 700px; }
+.sl-support-form-section { margin-bottom: 40px; }
+.sl-support-result {
+  background: #f0f9f5;
+  border: 2px solid var(--sl-green);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  margin-top: 16px;
+  text-align: center;
+}
+.sl-faq-section { margin-bottom: 40px; }
+.sl-faq-item {
+  border: 1px solid var(--sl-grey);
+  border-radius: var(--sl-radius);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.sl-faq-question {
+  padding: 14px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--sl-grey-light);
+}
+.sl-faq-question:hover { background: var(--sl-grey); }
+.sl-faq-answer {
+  display: none;
+  padding: 14px 16px;
+  color: var(--sl-text-muted);
+}
+.sl-faq-answer.open { display: block; }
+
+/* ---- Staff Assist ---- */
+.smartlife-staff-assist-wrapper { max-width: 700px; }
+.sl-staff-intro { color: var(--sl-text-muted); margin-bottom: 24px; }
+.sl-staff-result {
+  background: #f0f9f5;
+  border: 2px solid var(--sl-green);
+  border-radius: var(--sl-radius);
+  padding: 24px;
+  margin-top: 24px;
+}
+.sl-staff-nba {
+  font-weight: 700;
+  color: var(--sl-gold);
+  margin-top: 12px;
+}
+.sl-staff-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .smartlife-hero-title { font-size: 28px; }
+  .smartlife-hero-subtitle { font-size: 18px; }
+  .smartlife-card-grid { grid-template-columns: repeat(2, 1fr); }
+  .smartlife-goal-grid { grid-template-columns: repeat(3, 1fr); }
+  .smartlife-projection-result { grid-template-columns: 1fr; }
+  .smartlife-features-grid { grid-template-columns: 1fr; }
+  .sl-nav { flex-direction: column; }
+}
