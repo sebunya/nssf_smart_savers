@@ -27,16 +27,78 @@ def validate_no_pii(payload):
     return True
 
 
-def build_email_payload(to_demo_ref, subject, body_html, template_name=None):
+def build_email_payload(to_demo_ref, subject, body_html, template_name=None, personalisation=None):
+    """
+    Build ZeptoMail email payload.
+    personalisation may include: age_band, gender_category, country_category,
+    birthday_month, birthday_day, preferred_contact_channel, consent_to_contact, segment, goal.
+    Raw PII (name, email, DOB, phone) must be handled server-side and must NOT appear
+    in template merge fields sent to ZeptoMail unless using secure server-side rendering.
+    """
     config = get_zeptomail_config()
-    return {
-        'to': [{'email_address': {'address': to_demo_ref, 'name': 'Demo Recipient'}}],
+    payload = {
+        'to': [{'email_address': {'address': to_demo_ref, 'name': 'SmartLife Member'}}],
         'from': {'address': config['from_address'], 'name': config['from_name']},
         'subject': subject,
         'htmlbody': body_html,
         'template': template_name,
         'mode': config['mode'],
     }
+    if personalisation:
+        safe_fields = ('age_band', 'gender_category', 'country_category',
+                       'birthday_month', 'birthday_day',
+                       'preferred_contact_channel', 'consent_to_contact',
+                       'segment', 'goal', 'savings_goal')
+        payload['merge_info'] = {k: v for k, v in personalisation.items() if k in safe_fields}
+    return payload
+
+
+def build_birthday_email(to_demo_ref, birthday_month, birthday_day, age_band):
+    """Birthday email with anonymous personalisation only."""
+    subject = "Happy Birthday from NSSF SmartLife Flexi!"
+    body    = (
+        "<p>Dear SmartLife Member,</p>"
+        "<p>Wishing you a wonderful birthday from the NSSF SmartLife Flexi team!</p>"
+        "<p>Your savings journey continues — log in today to check your progress and stay on track.</p>"
+        "<p><strong>NSSF SmartLife Flexi</strong></p>"
+    )
+    return build_email_payload(
+        to_demo_ref, subject, body,
+        template_name='smartlife_birthday',
+        personalisation={'birthday_month': birthday_month, 'birthday_day': birthday_day, 'age_band': age_band}
+    )
+
+
+def build_onboarding_email(to_demo_ref, segment, goal, age_band):
+    """Onboarding confirmation email with anonymous personalisation."""
+    subject = "Welcome to NSSF SmartLife Flexi!"
+    body    = (
+        "<p>Dear SmartLife Member,</p>"
+        "<p>Thank you for starting your savings journey with NSSF SmartLife Flexi.</p>"
+        "<p>Your personalised savings plan is ready. Log in to review your plan and start saving.</p>"
+        "<p><strong>NSSF SmartLife Flexi</strong></p>"
+    )
+    return build_email_payload(
+        to_demo_ref, subject, body,
+        template_name='smartlife_onboarding',
+        personalisation={'segment': segment, 'savings_goal': goal, 'age_band': age_band}
+    )
+
+
+def build_savings_reminder_email(to_demo_ref, goal, frequency, age_band):
+    """Savings reminder email using only anonymous personalisation."""
+    subject = "SmartLife Flexi: Your savings reminder"
+    body    = (
+        "<p>Dear SmartLife Member,</p>"
+        "<p>Your " + str(goal or "savings") + " plan contribution is due soon.</p>"
+        "<p>Log in to SmartLife Flexi to make your " + str(frequency or "scheduled") + " contribution and stay on track.</p>"
+        "<p><strong>NSSF SmartLife Flexi</strong></p>"
+    )
+    return build_email_payload(
+        to_demo_ref, subject, body,
+        template_name='smartlife_savings_reminder',
+        personalisation={'savings_goal': goal, 'contribution_frequency': frequency, 'age_band': age_band}
+    )
 
 
 def send_demo_email(to_demo_ref, subject, body_html, event_type='demo_email', template_name=None):

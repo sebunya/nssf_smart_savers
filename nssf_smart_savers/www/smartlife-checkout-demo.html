@@ -1,9 +1,12 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-pii-safe-20260622">
-<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-pii-safe-20260622"></script>
-<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-pii-safe-20260622"></script>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-dob-ui-20260622">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-dob-ui-20260622"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-dob-ui-20260622"></script>
 
 <div class="sl-demo-notice">
   ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
@@ -13,7 +16,7 @@
   <h1>SmartLife Flexi — Demo Checkout</h1>
   <div class="sl-checkout-demo-badge">🔒 DEMO — No real payment will be collected. No real contribution made.</div>
 
-  <div class="sl-checkout-summary" id="sl-checkout-summary">
+  <div class="sl-summary sl-checkout-summary" id="sl-checkout-summary">
     <h2>Your Plan Summary</h2>
     <div class="sl-summary-row"><span>Product:</span><span>SmartLife Flexi Demo Contribution</span></div>
     <div class="sl-summary-row"><span>Goal:</span><span id="co-goal">—</span></div>

@@ -1,12 +1,15 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-pii-safe-20260622">
-<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-pii-safe-20260622"></script>
-<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-pii-safe-20260622"></script>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-dob-ui-20260622">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-dob-ui-20260622"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-dob-ui-20260622"></script>
 
 <div class="sl-demo-notice">
-  &#9888;&#65039; NSSF SmartLife Flexi Demo. Prototype environment for NSSF review. Do not enter real member data unless authorised.
+  &#9888;&#65039; NSSF SmartLife Flexi — Prototype environment for NSSF review. Do not enter real member data unless authorised.
 </div>
 
 <div class="sl-page" id="sl-self-serve">
@@ -30,35 +33,50 @@
       <label class="sl-choice-card" for="saver-existing">
         <input type="radio" name="saver_type" id="saver-existing" value="existing_member" class="sl-choice-input">
         <span class="sl-choice-icon">&#127970;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Existing NSSF Member</span><span class="sl-choice-desc">I already have an NSSF account and want to add voluntary SmartLife savings.</span></span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Existing NSSF Member</span>
+          <span class="sl-choice-desc">I already have an NSSF account and want to add voluntary SmartLife savings.</span>
+        </span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-new">
         <input type="radio" name="saver_type" id="saver-new" value="new_voluntary" class="sl-choice-input">
         <span class="sl-choice-icon">&#10024;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">New Saver</span><span class="sl-choice-desc">I do not currently save with NSSF but want to start building a savings habit.</span></span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">New Saver</span>
+          <span class="sl-choice-desc">I do not currently save with NSSF but want to start building a savings habit.</span>
+        </span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-diaspora">
         <input type="radio" name="saver_type" id="saver-diaspora" value="diaspora" class="sl-choice-input">
         <span class="sl-choice-icon">&#127757;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Diaspora Saver</span><span class="sl-choice-desc">I live outside Uganda and want to save consistently towards a goal back home.</span></span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Diaspora Saver</span>
+          <span class="sl-choice-desc">I live outside Uganda and want to save consistently towards a goal back home.</span>
+        </span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-informal">
         <input type="radio" name="saver_type" id="saver-informal" value="informal_sector" class="sl-choice-input">
         <span class="sl-choice-icon">&#128170;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Informal Sector</span><span class="sl-choice-desc">My income is flexible or irregular, so I need a plan that fits how I earn.</span></span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Informal Sector</span>
+          <span class="sl-choice-desc">My income is flexible or irregular, so I need a plan that fits how I earn.</span>
+        </span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-staff">
         <input type="radio" name="saver_type" id="saver-staff" value="staff_assisted_prospect" class="sl-choice-input">
         <span class="sl-choice-icon">&#128101;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Staff-Assisted</span><span class="sl-choice-desc">I am being guided by staff or registering through an assisted session.</span></span>
+        <span class="sl-choice-body">
+          <span class="sl-choice-title">Staff-Assisted</span>
+          <span class="sl-choice-desc">I am being guided by staff or registering through an assisted session.</span>
+        </span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
     </fieldset>
-    <p id="sl-step1-hint" style="font-size:13px;color:#888;margin-top:4px">Please select a saver type above to continue.</p>
+    <p id="sl-step1-hint" style="font-size:13px;color:var(--nssf-slate);margin-top:4px">Please select a saver type above to continue.</p>
     <div class="sl-step-actions">
       <button type="button" class="sl-btn-primary" id="sl-step1-next" disabled onclick="SLServe.next()">Next &rarr;</button>
     </div>
@@ -68,7 +86,7 @@
   <section class="sl-step" id="sl-step-2">
     <h2 class="sl-step-title">Your Personal Details</h2>
     <p class="sl-step-sub">Your information is stored securely and used only to personalise your savings plan. It is never shared with third parties or sent to analytics.</p>
-    <div class="sl-alert sl-alert-info" style="margin-bottom:20px;font-size:13px">
+    <div class="sl-privacy-box">
       &#128274; Your personal details stay private. Only anonymous, non-identifying signals are used for analytics.
     </div>
     <div class="sl-form" id="sl-details-form">
@@ -82,21 +100,24 @@
           <input type="text" id="sl-last-name" class="sl-input" placeholder="e.g. Nakato" maxlength="80" autocomplete="family-name" oninput="SLServe.validateStep2()">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="sl-field">
-          <label class="sl-label" for="sl-age">Age <span class="sl-required">*</span></label>
-          <input type="number" id="sl-age" class="sl-input" placeholder="e.g. 32" min="18" max="99" oninput="SLServe.validateStep2()">
-        </div>
-        <div class="sl-field">
-          <label class="sl-label" for="sl-gender">Gender <span class="sl-required">*</span></label>
-          <select id="sl-gender" class="sl-select" onchange="SLServe.validateStep2()">
-            <option value="">Select</option>
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-            <option value="prefer_not_to_say">Prefer not to say</option>
-          </select>
-        </div>
+
+      <div class="sl-field">
+        <label class="sl-label" for="date-of-birth">Date of birth <span class="sl-required">*</span></label>
+        <input type="date" id="date-of-birth" name="date_of_birth" class="sl-input" required onchange="SLServe.onDobChange()">
+        <p class="sl-help-text">Used to calculate your age and support birthday-based SmartLife reminders.</p>
+        <p id="calculated-age-preview" class="sl-help-text" aria-live="polite" style="color:var(--nssf-green);font-weight:600"></p>
       </div>
+
+      <div class="sl-field">
+        <label class="sl-label" for="sl-gender">Gender <span class="sl-required">*</span></label>
+        <select id="sl-gender" class="sl-select" onchange="SLServe.validateStep2()">
+          <option value="">Select</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="prefer_not_to_say">Prefer not to say</option>
+        </select>
+      </div>
+
       <div class="sl-field">
         <label class="sl-label" for="sl-phone">Primary phone number <span class="sl-required">*</span></label>
         <input type="tel" id="sl-phone" class="sl-input" placeholder="e.g. +256 7XX XXX XXX" maxlength="20" autocomplete="tel" oninput="SLServe.validateStep2()">
@@ -135,10 +156,10 @@
           <option value="call">Phone call</option>
         </select>
       </div>
-      <div class="sl-field" style="background:var(--sl-grey-50);border:1px solid var(--sl-grey-200);border-radius:8px;padding:16px">
+      <div class="sl-consent-block">
         <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-weight:normal">
-          <input type="checkbox" id="sl-consent" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;pointer-events:auto" onchange="SLServe.validateStep2()">
-          <span style="font-size:13px;line-height:1.55;color:var(--sl-text)">
+          <input type="checkbox" id="sl-consent" style="margin-top:3px;width:18px;height:18px;flex-shrink:0" onchange="SLServe.validateStep2()">
+          <span style="font-size:13px;line-height:1.55;color:var(--nssf-text)">
             <strong>I consent to NSSF contacting me</strong> about SmartLife Flexi savings plans via my preferred channel. I understand this is a demo environment and no real account is created. I can withdraw consent at any time.
             <span class="sl-required">*</span>
           </span>
@@ -242,8 +263,8 @@
       <div class="sl-plan-detail" id="sl-plan-rhythm"></div>
     </div>
     <div class="sl-card" style="margin-bottom:20px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px">Next Best Action</div>
-      <div id="sl-plan-nba" style="font-size:15px;color:var(--sl-text);line-height:1.6">Loading&hellip;</div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--nssf-slate);margin-bottom:8px">Next Best Action</div>
+      <div id="sl-plan-nba" style="font-size:15px;color:var(--nssf-text);line-height:1.6">Loading&hellip;</div>
     </div>
     <div class="sl-footer-actions">
       <a href="/smartlife-checkout-demo" class="sl-btn-primary" id="sl-checkout-btn">Start Saving Today</a>
@@ -259,143 +280,193 @@
 <script>
 (function(){
   'use strict';
-  var TOTAL_STEPS=6;
-  var _s={segment:'',goal:'',step:1,consent:false};
-  var FL={daily:'Daily',weekly:'Weekly',monthly:'Monthly',quarterly:'Quarterly','semi-annually':'Semi-Annually',annually:'Annually'};
-  function fmt(n){return 'UGX '+Math.round(n||0).toLocaleString();}
-  function el(id){return document.getElementById(id);}
-  function val(id){var e=el(id);return e?e.value.trim():'';}
+  var TOTAL_STEPS = 6;
+  var _s = { segment:'', goal:'', step:1, dob:null, age_years:0, age_band:'', birthday_month:0, birthday_day:0, consent:false };
+  var FL = { daily:'Daily', weekly:'Weekly', monthly:'Monthly', quarterly:'Quarterly', 'semi-annually':'Semi-Annually', annually:'Annually' };
+  function fmt(n){ return 'UGX ' + Math.round(n||0).toLocaleString(); }
+  function el(id){ return document.getElementById(id); }
+  function val(id){ var e = el(id); return e ? e.value.trim() : ''; }
 
-  window.SLServe={
-    goTo:function(n){
-      var c=_s.step;if(n<1||n>TOTAL_STEPS)return;
-      var ce=el('sl-step-'+c),ne=el('sl-step-'+n);
-      var ci=document.querySelector('[data-step="'+c+'"]'),ni=document.querySelector('[data-step="'+n+'"]');
-      if(ce)ce.classList.remove('sl-step-active');
-      if(ne)ne.classList.add('sl-step-active');
-      if(ci){ci.classList.remove('sl-active');ci.classList.add('sl-complete');}
-      if(ni)ni.classList.add('sl-active');
-      _s.step=n;window.scrollTo(0,0);
+  /* Calculate age and bands from a date string (YYYY-MM-DD) */
+  function calcDob(dobStr) {
+    if (!dobStr) return null;
+    var today = new Date();
+    var dob   = new Date(dobStr);
+    if (isNaN(dob.getTime())) return null;
+    if (dob >= today) return null;
+    var age = today.getFullYear() - dob.getFullYear();
+    var m   = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age < 16 || age > 100) return null;
+    var band = age < 20 ? '16-19' : age < 25 ? '20-24' : age < 35 ? '25-34' : age < 45 ? '35-44' : age < 55 ? '45-54' : '55+';
+    return { age_years: age, age_band: band, birthday_month: dob.getMonth() + 1, birthday_day: dob.getDate() };
+  }
+
+  window.SLServe = {
+    goTo: function(n) {
+      var c = _s.step; if (n < 1 || n > TOTAL_STEPS) return;
+      var ce = el('sl-step-' + c), ne = el('sl-step-' + n);
+      var ci = document.querySelector('[data-step="' + c + '"]'), ni = document.querySelector('[data-step="' + n + '"]');
+      if (ce) ce.classList.remove('sl-step-active');
+      if (ne) ne.classList.add('sl-step-active');
+      if (ci) { ci.classList.remove('sl-active'); ci.classList.add('sl-complete'); }
+      if (ni) ni.classList.add('sl-active');
+      _s.step = n; window.scrollTo(0, 0);
     },
-    next:function(){SLServe.goTo(_s.step+1);},
-    prev:function(){SLServe.goTo(_s.step-1);},
+    next: function() { SLServe.goTo(_s.step + 1); },
+    prev: function() { SLServe.goTo(_s.step - 1); },
 
-    validateStep2:function(){
-      var fn=val('sl-first-name');
-      var ln=val('sl-last-name');
-      var age=parseInt(val('sl-age'))||0;
-      var gender=val('sl-gender');
-      var phone=val('sl-phone');
-      var country=val('sl-country');
-      var consent=el('sl-consent')&&el('sl-consent').checked;
-      var btn=el('sl-step2-next');
-      if(btn)btn.disabled=!(fn&&ln&&age>=18&&age<=99&&gender&&phone&&country&&consent);
+    onDobChange: function() {
+      var dobStr = val('date-of-birth');
+      var preview = el('calculated-age-preview');
+      var result  = calcDob(dobStr);
+      if (result) {
+        _s.dob           = dobStr;
+        _s.age_years     = result.age_years;
+        _s.age_band      = result.age_band;
+        _s.birthday_month = result.birthday_month;
+        _s.birthday_day  = result.birthday_day;
+        if (preview) preview.textContent = 'Age: ' + result.age_years + ' years (band: ' + result.age_band + ')';
+      } else {
+        _s.dob = null; _s.age_years = 0;
+        if (preview) {
+          if (dobStr && new Date(dobStr) >= new Date()) {
+            preview.textContent = 'Date of birth cannot be in the future.';
+            if (preview) preview.style.color = 'var(--sl-error)';
+          } else if (dobStr) {
+            preview.textContent = 'Please enter a valid date of birth (age must be between 16 and 100).';
+            if (preview) preview.style.color = 'var(--sl-error)';
+          } else {
+            preview.textContent = '';
+          }
+        }
+      }
+      SLServe.validateStep2();
     },
 
-    submitDetails:function(){
-      /* Collect PII for Frappe DocType — NEVER send to analytics */
-      var details={
-        first_name:val('sl-first-name'),
-        last_name:val('sl-last-name'),
-        age:parseInt(val('sl-age'))||0,
-        gender:val('sl-gender'),
-        primary_phone:val('sl-phone'),
-        alt_phone:val('sl-alt-phone'),
-        email:val('sl-email'),
-        country_of_residence:val('sl-country'),
-        preferred_contact_channel:val('sl-contact-channel'),
-        consent_to_contact:el('sl-consent')&&el('sl-consent').checked,
-        saver_type:_s.segment
+    validateStep2: function() {
+      var fn      = val('sl-first-name');
+      var ln      = val('sl-last-name');
+      var gender  = val('sl-gender');
+      var phone   = val('sl-phone');
+      var country = val('sl-country');
+      var consent = el('sl-consent') && el('sl-consent').checked;
+      var dobOk   = _s.dob && _s.age_years >= 16;
+      var btn = el('sl-step2-next');
+      if (btn) btn.disabled = !(fn && ln && dobOk && gender && phone && country && consent);
+    },
+
+    submitDetails: function() {
+      /* Collect PII — stays server-side only, never sent to analytics */
+      var details = {
+        first_name:               val('sl-first-name'),
+        last_name:                val('sl-last-name'),
+        date_of_birth:            _s.dob,              /* stays in this closure, POSTed to Frappe only */
+        gender:                   val('sl-gender'),
+        primary_phone:            val('sl-phone'),
+        alt_phone:                val('sl-alt-phone'),
+        email:                    val('sl-email'),
+        country_of_residence:     val('sl-country'),
+        preferred_contact_channel: val('sl-contact-channel'),
+        consent_to_contact:       el('sl-consent') && el('sl-consent').checked,
+        saver_type:               _s.segment
       };
-      _s.consent=details.consent_to_contact;
-      /* Store anonymised bands for analytics — raw PII never leaves this closure */
-      _s.age_band=details.age<25?'18-24':details.age<35?'25-34':details.age<45?'35-44':details.age<55?'45-54':'55+';
-      _s.gender_category=details.gender==='prefer_not_to_say'?'undisclosed':details.gender;
-      _s.country_category=details.country_of_residence==='uganda'?'local':'international';
-      _s.consent_status=details.consent_to_contact?'consented':'not_consented';
-      /* Fire anonymous analytics event only */
-      if(window.SLAnalytics&&window.SLAnalytics.push){
-        window.SLAnalytics.push({
-          event:'personal_details_captured',
-          age_band:_s.age_band,
-          gender_category:_s.gender_category,
-          country_category:_s.country_category,
-          consent_status:_s.consent_status
+      _s.consent        = details.consent_to_contact;
+      _s.gender_category = details.gender === 'prefer_not_to_say' ? 'undisclosed' : details.gender;
+      _s.country_category = details.country_of_residence === 'uganda' ? 'local' : 'international';
+      _s.consent_status  = details.consent_to_contact ? 'consented' : 'not_consented';
+
+      /* Push ONLY anonymous bands to analytics — DOB/name/phone/email blocked */
+      if (window.SmartLifeAnalytics) {
+        window.SmartLifeAnalytics.detailsCaptured({
+          age_band:        _s.age_band,
+          gender_category: _s.gender_category,
+          country_category: _s.country_category,
+          consent_status:  _s.consent_status
         });
       }
-      /* Submit PII to Frappe API (server-side only) */
-      fetch('/api/method/nssf_smart_savers.api.submit_personal_details',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':frappe&&frappe.csrf_token||''},
-        body:JSON.stringify({data:details})
-      }).catch(function(e){console.warn('[SmartLife] Details submit error',e);});
+
+      /* Submit PII to Frappe (server-side storage only) */
+      fetch('/api/method/nssf_smart_savers.api.submit_personal_details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || '' },
+        body: JSON.stringify({ data: details })
+      }).catch(function(e) { console.warn('[SmartLife] Details submit error', e); });
+
       SLServe.goTo(3);
     },
 
-    validateStep4:function(){
-      var c=parseFloat((el('sl-contribution')||{}).value)||0;
-      var y=parseInt((el('sl-years')||{}).value)||0;
-      var f=(el('sl-frequency')||{}).value||'';
-      var btn=el('sl-step4-next');if(btn)btn.disabled=!(c>=5000&&y>=1&&f);
+    validateStep4: function() {
+      var c = parseFloat((el('sl-contribution') || {}).value) || 0;
+      var y = parseInt((el('sl-years') || {}).value) || 0;
+      var f = (el('sl-frequency') || {}).value || '';
+      var btn = el('sl-step4-next'); if (btn) btn.disabled = !(c >= 5000 && y >= 1 && f);
     },
 
-    runProjection:function(){
+    runProjection: function() {
       SLServe.goTo(5);
-      var contrib=val('sl-contribution')||'0';
-      var deposit=val('sl-deposit')||'0';
-      var freq=(el('sl-frequency')||{}).value||'monthly';
-      var years=val('sl-years')||'1';
-      fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit='+deposit+'&periodic_contribution='+contrib+'&frequency='+freq+'&years='+years)
-        .then(function(r){return r.json();})
-        .then(function(d){
-          var m=d.message||d;
-          if(el('sl-total-contrib'))el('sl-total-contrib').textContent=fmt(m.total_contributions);
-          if(el('sl-proj-value'))el('sl-proj-value').textContent=fmt(m.projected_value);
-          if(el('sl-ind-return'))el('sl-ind-return').textContent=fmt(m.indicative_return);
-          var ins=el('sl-projection-insight');
-          if(ins){ins.textContent='Saving '+(FL[freq]||freq).toLowerCase()+' for '+years+' year(s) could grow to '+fmt(m.projected_value)+'.';ins.style.display='block';}
-        }).catch(function(e){console.warn('[SmartLife] Projection error',e);});
+      var contrib = val('sl-contribution') || '0';
+      var deposit = val('sl-deposit') || '0';
+      var freq    = (el('sl-frequency') || {}).value || 'monthly';
+      var years   = val('sl-years') || '1';
+      fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit=' + deposit + '&periodic_contribution=' + contrib + '&frequency=' + freq + '&years=' + years)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var m = d.message || d;
+          if (el('sl-total-contrib')) el('sl-total-contrib').textContent = fmt(m.total_contributions);
+          if (el('sl-proj-value'))   el('sl-proj-value').textContent   = fmt(m.projected_value);
+          if (el('sl-ind-return'))   el('sl-ind-return').textContent   = fmt(m.indicative_return);
+          var ins = el('sl-projection-insight');
+          if (ins) { ins.textContent = 'Saving ' + (FL[freq] || freq).toLowerCase() + ' for ' + years + ' year(s) could grow to ' + fmt(m.projected_value) + '.'; ins.style.display = 'block'; }
+        }).catch(function(e) { console.warn('[SmartLife] Projection error', e); });
     },
 
-    getPlan:function(){
+    getPlan: function() {
       SLServe.goTo(6);
-      var seg=_s.segment||'new_voluntary';var goal=_s.goal||'other';
-      var yr=val('sl-years')||'1';var freq=(el('sl-frequency')||{}).value||'monthly';
-      var dep=val('sl-deposit')||'0';var con=val('sl-contribution')||'50000';var tgt=val('sl-target')||'0';
-      fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?segment='+seg+'&goal='+goal+'&target_amount='+tgt+'&years='+yr+'&frequency='+freq+'&initial_deposit='+dep)
-        .then(function(r){return r.json();})
-        .then(function(d){
-          var p=d.message||d;
-          if(el('sl-plan-hero'))el('sl-plan-hero').textContent=p.hero_copy||'Your plan is ready.';
-          if(el('sl-plan-goal'))el('sl-plan-goal').textContent=p.goal_copy||'';
-          if(el('sl-plan-rhythm'))el('sl-plan-rhythm').textContent=p.recommended_rhythm?'Rhythm: '+p.recommended_rhythm:'';
-          if(el('sl-plan-nba'))el('sl-plan-nba').textContent=p.next_best_action||'Open your SmartLife Flexi account today.';
-          var cta=el('sl-checkout-btn');
-          if(cta){if(p.cta_label)cta.textContent=p.cta_label;cta.href='/smartlife-checkout-demo?goal='+encodeURIComponent(goal)+'&frequency='+encodeURIComponent(freq)+'&amount='+encodeURIComponent(dep||con)+'&segment='+encodeURIComponent(seg);}
-        }).catch(function(e){console.warn('[SmartLife] Plan error',e);});
+      var seg  = _s.segment || 'new_voluntary'; var goal = _s.goal || 'other';
+      var yr   = val('sl-years') || '1'; var freq = (el('sl-frequency') || {}).value || 'monthly';
+      var dep  = val('sl-deposit') || '0'; var con = val('sl-contribution') || '50000'; var tgt = val('sl-target') || '0';
+      fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?segment=' + seg + '&goal=' + goal + '&target_amount=' + tgt + '&years=' + yr + '&frequency=' + freq + '&initial_deposit=' + dep)
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var p = d.message || d;
+          if (el('sl-plan-hero'))  el('sl-plan-hero').textContent  = p.hero_copy || 'Your plan is ready.';
+          if (el('sl-plan-goal'))  el('sl-plan-goal').textContent  = p.goal_copy || '';
+          if (el('sl-plan-rhythm')) el('sl-plan-rhythm').textContent = p.recommended_rhythm ? 'Rhythm: ' + p.recommended_rhythm : '';
+          if (el('sl-plan-nba'))   el('sl-plan-nba').textContent   = p.next_best_action || 'Open your SmartLife Flexi account today.';
+          var cta = el('sl-checkout-btn');
+          if (cta) { if (p.cta_label) cta.textContent = p.cta_label; cta.href = '/smartlife-checkout-demo?goal=' + encodeURIComponent(goal) + '&frequency=' + encodeURIComponent(freq) + '&amount=' + encodeURIComponent(dep || con) + '&segment=' + encodeURIComponent(seg); }
+        }).catch(function(e) { console.warn('[SmartLife] Plan error', e); });
     }
   };
 
-  function attachCards(fsId,stateKey,nextId){
-    var fs=el(fsId);if(!fs)return;
-    fs.querySelectorAll('input[type="radio"]').forEach(function(r){
-      r.addEventListener('change',function(){
-        _s[stateKey]=this.value;
-        fs.querySelectorAll('.sl-choice-card,.sl-goal-card').forEach(function(c){c.classList.remove('sl-selected');});
-        var lbl=fs.querySelector('label[for="'+this.id+'"]');if(lbl)lbl.classList.add('sl-selected');
-        var btn=el(nextId);if(btn)btn.disabled=false;
-        if(nextId==='sl-step1-next'){var h=el('sl-step1-hint');if(h)h.style.display='none';}
+  function attachCards(fsId, stateKey, nextId) {
+    var fs = el(fsId); if (!fs) return;
+    fs.querySelectorAll('input[type="radio"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        _s[stateKey] = this.value;
+        fs.querySelectorAll('.sl-choice-card,.sl-goal-card').forEach(function(c) { c.classList.remove('sl-selected'); });
+        var lbl = fs.querySelector('label[for="' + this.id + '"]'); if (lbl) lbl.classList.add('sl-selected');
+        var btn = el(nextId); if (btn) btn.disabled = false;
+        if (nextId === 'sl-step1-next') { var h = el('sl-step1-hint'); if (h) h.style.display = 'none'; }
       });
     });
   }
 
-  document.addEventListener('DOMContentLoaded',function(){
-    attachCards('sl-saver-fieldset','segment','sl-step1-next');
-    attachCards('sl-goal-fieldset','goal','sl-step3-next');
-    console.info('[SmartLife] Self-serve v6 initialised');
-    var params=new URLSearchParams(window.location.search);
-    var ps=params.get('segment');
-    if(ps){var r=document.querySelector('input[name="saver_type"][value="'+ps+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change'));SLServe.next();}}
+  /* Set DOB max to today */
+  function initDobField() {
+    var dob = el('date-of-birth');
+    if (dob) dob.setAttribute('max', new Date().toISOString().split('T')[0]);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    attachCards('sl-saver-fieldset', 'segment', 'sl-step1-next');
+    attachCards('sl-goal-fieldset',  'goal',    'sl-step3-next');
+    initDobField();
+    console.info('[SmartLife] Self-serve v6 (DOB) initialised');
+    var params = new URLSearchParams(window.location.search);
+    var ps = params.get('segment');
+    if (ps) { var r = document.querySelector('input[name="saver_type"][value="' + ps + '"]'); if (r) { r.checked = true; r.dispatchEvent(new Event('change')); SLServe.next(); } }
   });
 }());
 </script>

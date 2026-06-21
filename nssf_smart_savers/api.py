@@ -219,58 +219,92 @@ def submit_staff_assist(
 def submit_personal_details(data=None):
     """
     Accepts personal details from Step 2 of the self-serve flow.
+    Accepts date_of_birth (ISO date string); computes age_years, age_band,
+    birthday_month, birthday_day server-side.
     PII is stored in Frappe DocType only — never forwarded to analytics.
     """
+    from datetime import date
+    import re as _re
+
     if isinstance(data, str):
         data = json.loads(data)
     if not isinstance(data, dict):
         frappe.throw("Invalid payload.")
 
-    first_name = sanitise_demo_text(str(data.get("first_name") or ""), 80)
-    last_name = sanitise_demo_text(str(data.get("last_name") or ""), 80)
-    primary_phone = sanitise_demo_text(str(data.get("primary_phone") or ""), 30)
-    alt_phone = sanitise_demo_text(str(data.get("alt_phone") or ""), 30)
-    email = sanitise_demo_text(str(data.get("email") or ""), 120)
-    country = sanitise_demo_text(str(data.get("country_of_residence") or ""), 60)
-    gender = sanitise_demo_text(str(data.get("gender") or ""), 30)
+    first_name        = sanitise_demo_text(str(data.get("first_name") or ""), 80)
+    last_name         = sanitise_demo_text(str(data.get("last_name") or ""), 80)
+    primary_phone     = sanitise_demo_text(str(data.get("primary_phone") or ""), 30)
+    alt_phone         = sanitise_demo_text(str(data.get("alt_phone") or ""), 30)
+    email             = sanitise_demo_text(str(data.get("email") or ""), 120)
+    country           = sanitise_demo_text(str(data.get("country_of_residence") or ""), 60)
+    gender            = sanitise_demo_text(str(data.get("gender") or ""), 30)
     preferred_channel = sanitise_demo_text(str(data.get("preferred_contact_channel") or ""), 30)
-    saver_type = sanitise_demo_text(str(data.get("saver_type") or ""), 50)
-    age = _safe_int(data.get("age"), 0)
-    consent = bool(data.get("consent_to_contact", False))
+    saver_type        = sanitise_demo_text(str(data.get("saver_type") or ""), 50)
+    dob_str           = str(data.get("date_of_birth") or "").strip()
+    consent           = bool(data.get("consent_to_contact", False))
 
     if not (first_name and last_name and primary_phone and country and consent):
         frappe.throw("Required fields missing: first_name, last_name, primary_phone, country_of_residence, consent_to_contact.")
 
+    # Validate and compute DOB fields
+    if not dob_str or not _re.match(r'^\d{4}-\d{2}-\d{2}$', dob_str):
+        frappe.throw("date_of_birth is required and must be in YYYY-MM-DD format.")
+    try:
+        dob = date.fromisoformat(dob_str)
+    except ValueError:
+        frappe.throw("date_of_birth is not a valid date.")
+    today = date.today()
+    if dob >= today:
+        frappe.throw("date_of_birth cannot be today or in the future.")
+    age_years = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    if age_years < 16 or age_years > 100:
+        frappe.throw("date_of_birth implies an age outside the allowed range (16–100).")
+    birthday_month = dob.month
+    birthday_day   = dob.day
+    age_band = (
+        "16-19" if age_years < 20 else
+        "20-24" if age_years < 25 else
+        "25-34" if age_years < 35 else
+        "35-44" if age_years < 45 else
+        "45-54" if age_years < 55 else "55+"
+    )
+
     session_id = str(uuid.uuid4())[:16]
     doc = frappe.get_doc({
         "doctype": "SmartLife Demo Lead",
-        "first_name": first_name,
-        "last_name": last_name,
-        "primary_phone": primary_phone,
-        "alt_phone": alt_phone,
-        "email_address": email,
-        "country": country,
-        "gender": gender,
-        "age": age,
+        "first_name":              first_name,
+        "last_name":               last_name,
+        "primary_phone":           primary_phone,
+        "alt_phone":               alt_phone,
+        "email_address":           email,
+        "country":                 country,
+        "gender":                  gender,
+        "date_of_birth":           dob_str,
+        "age_years":               age_years,
+        "age_band":                age_band,
+        "birthday_month":          birthday_month,
+        "birthday_day":            birthday_day,
         "preferred_contact_channel": preferred_channel,
-        "consent_to_contact": 1 if consent else 0,
-        "segment": saver_type,
-        "lead_stage": "Prospect",
-        "journey_type": "self_serve",
-        "created_session_id": session_id,
-        "demo_note": DEMO_NOTICE,
+        "consent_to_contact":      1 if consent else 0,
+        "segment":                 saver_type,
+        "lead_stage":              "Prospect",
+        "journey_type":            "self_serve",
+        "created_session_id":      session_id,
+        "demo_note":               DEMO_NOTICE,
         "analytics_labels": json.dumps({
-            "age_band": "<25" if age < 25 else "25-34" if age < 35 else "35-44" if age < 45 else "45-54" if age < 55 else "55+",
-            "gender_category": "undisclosed" if gender == "prefer_not_to_say" else gender,
+            "age_band":         age_band,
+            "gender_category":  "undisclosed" if gender == "prefer_not_to_say" else gender,
             "country_category": "local" if country.lower() == "uganda" else "international",
-            "consent_status": "consented" if consent else "not_consented",
+            "consent_status":   "consented" if consent else "not_consented",
         }),
     })
     doc.insert(ignore_permissions=True)
+    # Return only non-PII: session reference and anonymous bands
     return {
-        "success": True,
-        "session_id": session_id,
-        "demo_notice": DEMO_NOTICE,
+        "success":      True,
+        "session_id":   session_id,
+        "age_band":     age_band,
+        "demo_notice":  DEMO_NOTICE,
     }
 
 
