@@ -1,27 +1,40 @@
 /*
  * SmartLife Flexi — Complete Design System
- * NSSF-adjacent palette: deep green, gold, navy, white, soft neutrals
- * v phase1-ui-restore-20260622
+ * NSSF official brand palette: navy, sky blue, green
+ * v nssf-brand-pii-safe-20260622
  */
 
 /* ─── Tokens ─────────────────────────────────────────────────── */
 :root {
-  --sl-green:        #1a5c38;
-  --sl-green-light:  #2d7a50;
-  --sl-green-pale:   #e6f4ed;
+  /* NSSF Brand palette */
+  --nssf-navy:       #002060;
+  --nssf-navy-2:     #0F2C59;
+  --nssf-sky:        #00AEEF;
+  --nssf-sky-2:      #00A3E0;
+  --nssf-green:      #00A859;
+  --nssf-green-2:    #107C41;
+  --nssf-slate:      #333333;
+  --nssf-slate-2:    #4A4A4A;
+  --nssf-white:      #FFFFFF;
+  --nssf-offwhite:   #F8F9FA;
+
+  /* Legacy aliases — map old tokens to NSSF brand */
+  --sl-green:        var(--nssf-green);
+  --sl-green-light:  var(--nssf-green-2);
+  --sl-green-pale:   #e0f5ec;
   --sl-gold:         #c9a227;
-  --sl-navy:         #0d2b4e;
-  --sl-white:        #ffffff;
-  --sl-grey-50:      #f8f9fa;
+  --sl-navy:         var(--nssf-navy);
+  --sl-white:        var(--nssf-white);
+  --sl-grey-50:      var(--nssf-offwhite);
   --sl-grey-100:     #f1f3f5;
   --sl-grey-200:     #e9ecef;
   --sl-grey-300:     #dee2e6;
   --sl-grey-500:     #868e96;
   --sl-grey-700:     #495057;
   --sl-grey-900:     #212529;
-  --sl-text:         #1a1a1a;
-  --sl-text-muted:   #555;
-  --sl-success:      #16a34a;
+  --sl-text:         var(--nssf-slate);
+  --sl-text-muted:   var(--nssf-slate-2);
+  --sl-success:      var(--nssf-green);
   --sl-error:        #dc2626;
   --sl-warning-bg:   #fff8e1;
   --sl-warning-brdr: #f59e0b;
@@ -63,7 +76,7 @@
 
 /* ─── Hero ───────────────────────────────────────────────────── */
 .sl-hero {
-  background: linear-gradient(135deg, var(--sl-navy) 0%, var(--sl-green) 100%);
+  background: linear-gradient(135deg, var(--nssf-navy) 0%, var(--nssf-navy-2) 60%, var(--nssf-green) 100%);
   color: var(--sl-white);
   padding: 56px 24px 48px;
   text-align: center;
@@ -327,8 +340,8 @@
   cursor: pointer;
 }
 .sl-input:focus, .sl-select:focus {
-  border-color: var(--sl-green);
-  box-shadow: 0 0 0 3px rgba(26,92,56,0.12);
+  border-color: var(--nssf-sky);
+  box-shadow: 0 0 0 3px rgba(0,174,239,0.18);
 }
 
 /* ─── Buttons ────────────────────────────────────────────────── */
@@ -557,7 +570,7 @@
 
 /* ─── Plan card ──────────────────────────────────────────────── */
 .sl-plan-card {
-  background: linear-gradient(135deg, var(--sl-navy) 0%, var(--sl-green) 100%);
+  background: linear-gradient(135deg, var(--nssf-navy) 0%, var(--nssf-navy-2) 60%, var(--nssf-green) 100%);
   color: var(--sl-white);
   border-radius: var(--sl-radius);
   padding: 28px;
@@ -637,7 +650,7 @@
 
 /* ─── Staff-assist header ────────────────────────────────────── */
 .sl-assist-header {
-  background: linear-gradient(135deg, var(--sl-navy) 0%, #1a4070 100%);
+  background: linear-gradient(135deg, var(--nssf-navy) 0%, var(--nssf-navy-2) 100%);
   color: var(--sl-white);
   padding: 36px 24px 32px;
   margin-bottom: 32px;

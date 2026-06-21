@@ -216,6 +216,65 @@ def submit_staff_assist(
 
 
 @frappe.whitelist(allow_guest=True)
+def submit_personal_details(data=None):
+    """
+    Accepts personal details from Step 2 of the self-serve flow.
+    PII is stored in Frappe DocType only — never forwarded to analytics.
+    """
+    if isinstance(data, str):
+        data = json.loads(data)
+    if not isinstance(data, dict):
+        frappe.throw("Invalid payload.")
+
+    first_name = sanitise_demo_text(str(data.get("first_name") or ""), 80)
+    last_name = sanitise_demo_text(str(data.get("last_name") or ""), 80)
+    primary_phone = sanitise_demo_text(str(data.get("primary_phone") or ""), 30)
+    alt_phone = sanitise_demo_text(str(data.get("alt_phone") or ""), 30)
+    email = sanitise_demo_text(str(data.get("email") or ""), 120)
+    country = sanitise_demo_text(str(data.get("country_of_residence") or ""), 60)
+    gender = sanitise_demo_text(str(data.get("gender") or ""), 30)
+    preferred_channel = sanitise_demo_text(str(data.get("preferred_contact_channel") or ""), 30)
+    saver_type = sanitise_demo_text(str(data.get("saver_type") or ""), 50)
+    age = _safe_int(data.get("age"), 0)
+    consent = bool(data.get("consent_to_contact", False))
+
+    if not (first_name and last_name and primary_phone and country and consent):
+        frappe.throw("Required fields missing: first_name, last_name, primary_phone, country_of_residence, consent_to_contact.")
+
+    session_id = str(uuid.uuid4())[:16]
+    doc = frappe.get_doc({
+        "doctype": "SmartLife Demo Lead",
+        "first_name": first_name,
+        "last_name": last_name,
+        "primary_phone": primary_phone,
+        "alt_phone": alt_phone,
+        "email_address": email,
+        "country": country,
+        "gender": gender,
+        "age": age,
+        "preferred_contact_channel": preferred_channel,
+        "consent_to_contact": 1 if consent else 0,
+        "segment": saver_type,
+        "lead_stage": "Prospect",
+        "journey_type": "self_serve",
+        "created_session_id": session_id,
+        "demo_note": DEMO_NOTICE,
+        "analytics_labels": json.dumps({
+            "age_band": "<25" if age < 25 else "25-34" if age < 35 else "35-44" if age < 45 else "45-54" if age < 55 else "55+",
+            "gender_category": "undisclosed" if gender == "prefer_not_to_say" else gender,
+            "country_category": "local" if country.lower() == "uganda" else "international",
+            "consent_status": "consented" if consent else "not_consented",
+        }),
+    })
+    doc.insert(ignore_permissions=True)
+    return {
+        "success": True,
+        "session_id": session_id,
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist(allow_guest=True)
 def simulate_payment(demo_lead_name, amount, frequency, goal):
     """Simulate a payment for demo purposes. No real payment is processed."""
     _check_pii(demo_lead_name)

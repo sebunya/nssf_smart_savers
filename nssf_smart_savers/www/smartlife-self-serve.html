@@ -1,9 +1,9 @@
 {% extends "templates/web.html" %}
 
 {% block page_content %}
-<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=phase1-ui-restore-20260622">
-<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=phase1-ui-restore-20260622"></script>
-<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=phase1-ui-restore-20260622"></script>
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-pii-safe-20260622">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-pii-safe-20260622"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-pii-safe-20260622"></script>
 
 <div class="sl-demo-notice">
   &#9888;&#65039; NSSF SmartLife Flexi Demo. Prototype environment for NSSF review. Do not enter real member data unless authorised.
@@ -14,13 +14,14 @@
 
   <nav class="sl-stepper" role="navigation" aria-label="Progress" id="sl-stepper">
     <div class="sl-stepper-step sl-active" data-step="1"><div class="sl-stepper-inner"><span class="sl-stepper-num">1</span><span class="sl-stepper-label">Saver Type</span></div></div>
-    <div class="sl-stepper-step" data-step="2"><div class="sl-stepper-inner"><span class="sl-stepper-num">2</span><span class="sl-stepper-label">Goal</span></div></div>
-    <div class="sl-stepper-step" data-step="3"><div class="sl-stepper-inner"><span class="sl-stepper-num">3</span><span class="sl-stepper-label">Plan</span></div></div>
-    <div class="sl-stepper-step" data-step="4"><div class="sl-stepper-inner"><span class="sl-stepper-num">4</span><span class="sl-stepper-label">Projection</span></div></div>
-    <div class="sl-stepper-step" data-step="5"><div class="sl-stepper-inner"><span class="sl-stepper-num">5</span><span class="sl-stepper-label">Your Plan</span></div></div>
+    <div class="sl-stepper-step" data-step="2"><div class="sl-stepper-inner"><span class="sl-stepper-num">2</span><span class="sl-stepper-label">Your Details</span></div></div>
+    <div class="sl-stepper-step" data-step="3"><div class="sl-stepper-inner"><span class="sl-stepper-num">3</span><span class="sl-stepper-label">Goal</span></div></div>
+    <div class="sl-stepper-step" data-step="4"><div class="sl-stepper-inner"><span class="sl-stepper-num">4</span><span class="sl-stepper-label">Plan</span></div></div>
+    <div class="sl-stepper-step" data-step="5"><div class="sl-stepper-inner"><span class="sl-stepper-num">5</span><span class="sl-stepper-label">Projection</span></div></div>
+    <div class="sl-stepper-step" data-step="6"><div class="sl-stepper-inner"><span class="sl-stepper-num">6</span><span class="sl-stepper-label">Your Plan</span></div></div>
   </nav>
 
-  <!-- STEP 1 -->
+  <!-- STEP 1: Saver Type -->
   <section class="sl-step sl-step-active" id="sl-step-1">
     <h2 class="sl-step-title">Who are you saving as?</h2>
     <p class="sl-step-sub">Select the option that best describes you.</p>
@@ -35,7 +36,7 @@
       <label class="sl-choice-card" for="saver-new">
         <input type="radio" name="saver_type" id="saver-new" value="new_voluntary" class="sl-choice-input">
         <span class="sl-choice-icon">&#10024;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">New Saver / Non-Member</span><span class="sl-choice-desc">I do not currently save with NSSF but want to start building a savings habit.</span></span>
+        <span class="sl-choice-body"><span class="sl-choice-title">New Saver</span><span class="sl-choice-desc">I do not currently save with NSSF but want to start building a savings habit.</span></span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-diaspora">
@@ -47,13 +48,13 @@
       <label class="sl-choice-card" for="saver-informal">
         <input type="radio" name="saver_type" id="saver-informal" value="informal_sector" class="sl-choice-input">
         <span class="sl-choice-icon">&#128170;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Informal Sector Saver</span><span class="sl-choice-desc">My income is flexible or irregular, so I need a plan that fits how I earn.</span></span>
+        <span class="sl-choice-body"><span class="sl-choice-title">Informal Sector</span><span class="sl-choice-desc">My income is flexible or irregular, so I need a plan that fits how I earn.</span></span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
       <label class="sl-choice-card" for="saver-staff">
         <input type="radio" name="saver_type" id="saver-staff" value="staff_assisted_prospect" class="sl-choice-input">
         <span class="sl-choice-icon">&#128101;</span>
-        <span class="sl-choice-body"><span class="sl-choice-title">Staff-Assisted Prospect</span><span class="sl-choice-desc">I am being guided by staff or registering through an assisted session.</span></span>
+        <span class="sl-choice-body"><span class="sl-choice-title">Staff-Assisted</span><span class="sl-choice-desc">I am being guided by staff or registering through an assisted session.</span></span>
         <span class="sl-choice-check" aria-hidden="true"></span>
       </label>
     </fieldset>
@@ -63,8 +64,95 @@
     </div>
   </section>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: Personal Details -->
   <section class="sl-step" id="sl-step-2">
+    <h2 class="sl-step-title">Your Personal Details</h2>
+    <p class="sl-step-sub">Your information is stored securely and used only to personalise your savings plan. It is never shared with third parties or sent to analytics.</p>
+    <div class="sl-alert sl-alert-info" style="margin-bottom:20px;font-size:13px">
+      &#128274; Your personal details stay private. Only anonymous, non-identifying signals are used for analytics.
+    </div>
+    <div class="sl-form" id="sl-details-form">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="sl-field">
+          <label class="sl-label" for="sl-first-name">First name <span class="sl-required">*</span></label>
+          <input type="text" id="sl-first-name" class="sl-input" placeholder="e.g. Amina" maxlength="80" autocomplete="given-name" oninput="SLServe.validateStep2()">
+        </div>
+        <div class="sl-field">
+          <label class="sl-label" for="sl-last-name">Last name <span class="sl-required">*</span></label>
+          <input type="text" id="sl-last-name" class="sl-input" placeholder="e.g. Nakato" maxlength="80" autocomplete="family-name" oninput="SLServe.validateStep2()">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="sl-field">
+          <label class="sl-label" for="sl-age">Age <span class="sl-required">*</span></label>
+          <input type="number" id="sl-age" class="sl-input" placeholder="e.g. 32" min="18" max="99" oninput="SLServe.validateStep2()">
+        </div>
+        <div class="sl-field">
+          <label class="sl-label" for="sl-gender">Gender <span class="sl-required">*</span></label>
+          <select id="sl-gender" class="sl-select" onchange="SLServe.validateStep2()">
+            <option value="">Select</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+            <option value="prefer_not_to_say">Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+      <div class="sl-field">
+        <label class="sl-label" for="sl-phone">Primary phone number <span class="sl-required">*</span></label>
+        <input type="tel" id="sl-phone" class="sl-input" placeholder="e.g. +256 7XX XXX XXX" maxlength="20" autocomplete="tel" oninput="SLServe.validateStep2()">
+        <span class="sl-help-text">Used to send your plan summary by SMS. Not shared with analytics.</span>
+      </div>
+      <div class="sl-field">
+        <label class="sl-label" for="sl-alt-phone">Alternative phone (optional)</label>
+        <input type="tel" id="sl-alt-phone" class="sl-input" placeholder="e.g. +256 7XX XXX XXX" maxlength="20" autocomplete="tel">
+      </div>
+      <div class="sl-field">
+        <label class="sl-label" for="sl-email">Email address (optional)</label>
+        <input type="email" id="sl-email" class="sl-input" placeholder="e.g. amina@example.com" maxlength="120" autocomplete="email">
+        <span class="sl-help-text">For plan confirmation only. Never shared with advertising or analytics.</span>
+      </div>
+      <div class="sl-field">
+        <label class="sl-label" for="sl-country">Country of residence <span class="sl-required">*</span></label>
+        <select id="sl-country" class="sl-select" onchange="SLServe.validateStep2()">
+          <option value="">Select country</option>
+          <option value="uganda">Uganda</option>
+          <option value="kenya">Kenya</option>
+          <option value="tanzania">Tanzania</option>
+          <option value="rwanda">Rwanda</option>
+          <option value="uk">United Kingdom</option>
+          <option value="usa">United States</option>
+          <option value="canada">Canada</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="sl-field">
+        <label class="sl-label" for="sl-contact-channel">Preferred contact channel</label>
+        <select id="sl-contact-channel" class="sl-select">
+          <option value="">Select channel</option>
+          <option value="sms">SMS</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="email">Email</option>
+          <option value="call">Phone call</option>
+        </select>
+      </div>
+      <div class="sl-field" style="background:var(--sl-grey-50);border:1px solid var(--sl-grey-200);border-radius:8px;padding:16px">
+        <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-weight:normal">
+          <input type="checkbox" id="sl-consent" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;pointer-events:auto" onchange="SLServe.validateStep2()">
+          <span style="font-size:13px;line-height:1.55;color:var(--sl-text)">
+            <strong>I consent to NSSF contacting me</strong> about SmartLife Flexi savings plans via my preferred channel. I understand this is a demo environment and no real account is created. I can withdraw consent at any time.
+            <span class="sl-required">*</span>
+          </span>
+        </label>
+      </div>
+    </div>
+    <div class="sl-step-actions">
+      <button type="button" class="sl-btn-secondary" onclick="SLServe.prev()">&#8592; Back</button>
+      <button type="button" class="sl-btn-primary" id="sl-step2-next" disabled onclick="SLServe.submitDetails()">Next &rarr;</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: Goal -->
+  <section class="sl-step" id="sl-step-3">
     <h2 class="sl-step-title">What are you saving for?</h2>
     <p class="sl-step-sub">Choose your primary savings goal.</p>
     <fieldset class="sl-goal-grid" id="sl-goal-fieldset" style="border:0;padding:0;margin:0">
@@ -82,21 +170,21 @@
     </fieldset>
     <div class="sl-step-actions">
       <button type="button" class="sl-btn-secondary" onclick="SLServe.prev()">&#8592; Back</button>
-      <button type="button" class="sl-btn-primary" id="sl-step2-next" disabled onclick="SLServe.next()">Next &rarr;</button>
+      <button type="button" class="sl-btn-primary" id="sl-step3-next" disabled onclick="SLServe.next()">Next &rarr;</button>
     </div>
   </section>
 
-  <!-- STEP 3 -->
-  <section class="sl-step" id="sl-step-3">
+  <!-- STEP 4: Plan Details -->
+  <section class="sl-step" id="sl-step-4">
     <h2 class="sl-step-title">Set up your plan</h2>
     <p class="sl-step-sub">Minimum contribution: UGX 5,000 per period. Lock-in: 1 year.</p>
     <div class="sl-form" id="sl-plan-form">
       <div class="sl-field"><label class="sl-label" for="sl-nickname">Goal nickname (optional)</label><input type="text" id="sl-nickname" class="sl-input" placeholder="e.g. My Dream Home" maxlength="100"></div>
       <div class="sl-field"><label class="sl-label" for="sl-target">Target amount (UGX, optional)</label><input type="number" id="sl-target" class="sl-input" placeholder="e.g. 10,000,000" min="0"></div>
-      <div class="sl-field"><label class="sl-label" for="sl-years">Savings period (years) <span class="sl-required">*</span></label><input type="number" id="sl-years" class="sl-input" placeholder="e.g. 5" min="1" max="40" oninput="SLServe.validateStep3()"></div>
+      <div class="sl-field"><label class="sl-label" for="sl-years">Savings period (years) <span class="sl-required">*</span></label><input type="number" id="sl-years" class="sl-input" placeholder="e.g. 5" min="1" max="40" oninput="SLServe.validateStep4()"></div>
       <div class="sl-field">
         <label class="sl-label" for="sl-frequency">Contribution frequency <span class="sl-required">*</span></label>
-        <select id="sl-frequency" class="sl-select" onchange="SLServe.validateStep3()">
+        <select id="sl-frequency" class="sl-select" onchange="SLServe.validateStep4()">
           <option value="">Select frequency</option>
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
@@ -106,7 +194,7 @@
           <option value="annually">Annually</option>
         </select>
       </div>
-      <div class="sl-field"><label class="sl-label" for="sl-contribution">Contribution amount (UGX per period) <span class="sl-required">*</span></label><input type="number" id="sl-contribution" class="sl-input" placeholder="Min UGX 5,000" min="5000" oninput="SLServe.validateStep3()"><span class="sl-help-text">Minimum UGX 5,000 per period.</span></div>
+      <div class="sl-field"><label class="sl-label" for="sl-contribution">Contribution amount (UGX per period) <span class="sl-required">*</span></label><input type="number" id="sl-contribution" class="sl-input" placeholder="Min UGX 5,000" min="5000" oninput="SLServe.validateStep4()"><span class="sl-help-text">Minimum UGX 5,000 per period.</span></div>
       <div class="sl-field"><label class="sl-label" for="sl-deposit">Initial deposit (UGX, optional)</label><input type="number" id="sl-deposit" class="sl-input" placeholder="e.g. 100,000" min="0"></div>
       <div class="sl-field">
         <label class="sl-label" for="sl-source">Source of income</label>
@@ -125,12 +213,12 @@
     </div>
     <div class="sl-step-actions">
       <button type="button" class="sl-btn-secondary" onclick="SLServe.prev()">&#8592; Back</button>
-      <button type="button" class="sl-btn-primary" id="sl-step3-next" disabled onclick="SLServe.runProjection()">Calculate Projection</button>
+      <button type="button" class="sl-btn-primary" id="sl-step4-next" disabled onclick="SLServe.runProjection()">Calculate Projection</button>
     </div>
   </section>
 
-  <!-- STEP 4 -->
-  <section class="sl-step" id="sl-step-4">
+  <!-- STEP 5: Projection -->
+  <section class="sl-step" id="sl-step-5">
     <h2 class="sl-step-title">Your Savings Projection</h2>
     <p class="sl-projection-disclaimer">Projection is indicative for demo purposes only. Assumes 10% effective annual return. Actual returns may vary.</p>
     <div class="sl-result-grid" id="sl-result-grid">
@@ -145,8 +233,8 @@
     </div>
   </section>
 
-  <!-- STEP 5 -->
-  <section class="sl-step" id="sl-step-5">
+  <!-- STEP 6: Your Plan -->
+  <section class="sl-step" id="sl-step-6">
     <h2 class="sl-step-title">Your Personalised Plan</h2>
     <div class="sl-plan-card" id="sl-plan-card">
       <div class="sl-plan-hero" id="sl-plan-hero">Generating your plan&hellip;</div>
@@ -155,7 +243,7 @@
     </div>
     <div class="sl-card" style="margin-bottom:20px">
       <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px">Next Best Action</div>
-      <div id="sl-plan-nba" style="font-size:15px;color:#1a1a1a;line-height:1.6">Loading&hellip;</div>
+      <div id="sl-plan-nba" style="font-size:15px;color:var(--sl-text);line-height:1.6">Loading&hellip;</div>
     </div>
     <div class="sl-footer-actions">
       <a href="/smartlife-checkout-demo" class="sl-btn-primary" id="sl-checkout-btn">Start Saving Today</a>
@@ -171,13 +259,16 @@
 <script>
 (function(){
   'use strict';
-  var _s={segment:'',goal:'',step:1};
+  var TOTAL_STEPS=6;
+  var _s={segment:'',goal:'',step:1,consent:false};
   var FL={daily:'Daily',weekly:'Weekly',monthly:'Monthly',quarterly:'Quarterly','semi-annually':'Semi-Annually',annually:'Annually'};
   function fmt(n){return 'UGX '+Math.round(n||0).toLocaleString();}
   function el(id){return document.getElementById(id);}
+  function val(id){var e=el(id);return e?e.value.trim():'';}
+
   window.SLServe={
     goTo:function(n){
-      var c=_s.step;if(n<1||n>5)return;
+      var c=_s.step;if(n<1||n>TOTAL_STEPS)return;
       var ce=el('sl-step-'+c),ne=el('sl-step-'+n);
       var ci=document.querySelector('[data-step="'+c+'"]'),ni=document.querySelector('[data-step="'+n+'"]');
       if(ce)ce.classList.remove('sl-step-active');
@@ -188,18 +279,72 @@
     },
     next:function(){SLServe.goTo(_s.step+1);},
     prev:function(){SLServe.goTo(_s.step-1);},
-    validateStep3:function(){
+
+    validateStep2:function(){
+      var fn=val('sl-first-name');
+      var ln=val('sl-last-name');
+      var age=parseInt(val('sl-age'))||0;
+      var gender=val('sl-gender');
+      var phone=val('sl-phone');
+      var country=val('sl-country');
+      var consent=el('sl-consent')&&el('sl-consent').checked;
+      var btn=el('sl-step2-next');
+      if(btn)btn.disabled=!(fn&&ln&&age>=18&&age<=99&&gender&&phone&&country&&consent);
+    },
+
+    submitDetails:function(){
+      /* Collect PII for Frappe DocType — NEVER send to analytics */
+      var details={
+        first_name:val('sl-first-name'),
+        last_name:val('sl-last-name'),
+        age:parseInt(val('sl-age'))||0,
+        gender:val('sl-gender'),
+        primary_phone:val('sl-phone'),
+        alt_phone:val('sl-alt-phone'),
+        email:val('sl-email'),
+        country_of_residence:val('sl-country'),
+        preferred_contact_channel:val('sl-contact-channel'),
+        consent_to_contact:el('sl-consent')&&el('sl-consent').checked,
+        saver_type:_s.segment
+      };
+      _s.consent=details.consent_to_contact;
+      /* Store anonymised bands for analytics — raw PII never leaves this closure */
+      _s.age_band=details.age<25?'18-24':details.age<35?'25-34':details.age<45?'35-44':details.age<55?'45-54':'55+';
+      _s.gender_category=details.gender==='prefer_not_to_say'?'undisclosed':details.gender;
+      _s.country_category=details.country_of_residence==='uganda'?'local':'international';
+      _s.consent_status=details.consent_to_contact?'consented':'not_consented';
+      /* Fire anonymous analytics event only */
+      if(window.SLAnalytics&&window.SLAnalytics.push){
+        window.SLAnalytics.push({
+          event:'personal_details_captured',
+          age_band:_s.age_band,
+          gender_category:_s.gender_category,
+          country_category:_s.country_category,
+          consent_status:_s.consent_status
+        });
+      }
+      /* Submit PII to Frappe API (server-side only) */
+      fetch('/api/method/nssf_smart_savers.api.submit_personal_details',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Frappe-CSRF-Token':frappe&&frappe.csrf_token||''},
+        body:JSON.stringify({data:details})
+      }).catch(function(e){console.warn('[SmartLife] Details submit error',e);});
+      SLServe.goTo(3);
+    },
+
+    validateStep4:function(){
       var c=parseFloat((el('sl-contribution')||{}).value)||0;
       var y=parseInt((el('sl-years')||{}).value)||0;
       var f=(el('sl-frequency')||{}).value||'';
-      var btn=el('sl-step3-next');if(btn)btn.disabled=!(c>=5000&&y>=1&&f);
+      var btn=el('sl-step4-next');if(btn)btn.disabled=!(c>=5000&&y>=1&&f);
     },
+
     runProjection:function(){
-      SLServe.goTo(4);
-      var contrib=(el('sl-contribution')||{}).value||'0';
-      var deposit=(el('sl-deposit')||{}).value||'0';
+      SLServe.goTo(5);
+      var contrib=val('sl-contribution')||'0';
+      var deposit=val('sl-deposit')||'0';
       var freq=(el('sl-frequency')||{}).value||'monthly';
-      var years=(el('sl-years')||{}).value||'1';
+      var years=val('sl-years')||'1';
       fetch('/api/method/nssf_smart_savers.api.get_projection?initial_deposit='+deposit+'&periodic_contribution='+contrib+'&frequency='+freq+'&years='+years)
         .then(function(r){return r.json();})
         .then(function(d){
@@ -211,11 +356,12 @@
           if(ins){ins.textContent='Saving '+(FL[freq]||freq).toLowerCase()+' for '+years+' year(s) could grow to '+fmt(m.projected_value)+'.';ins.style.display='block';}
         }).catch(function(e){console.warn('[SmartLife] Projection error',e);});
     },
+
     getPlan:function(){
-      SLServe.goTo(5);
+      SLServe.goTo(6);
       var seg=_s.segment||'new_voluntary';var goal=_s.goal||'other';
-      var yr=(el('sl-years')||{}).value||'1';var freq=(el('sl-frequency')||{}).value||'monthly';
-      var dep=(el('sl-deposit')||{}).value||'0';var con=(el('sl-contribution')||{}).value||'50000';var tgt=(el('sl-target')||{}).value||'0';
+      var yr=val('sl-years')||'1';var freq=(el('sl-frequency')||{}).value||'monthly';
+      var dep=val('sl-deposit')||'0';var con=val('sl-contribution')||'50000';var tgt=val('sl-target')||'0';
       fetch('/api/method/nssf_smart_savers.api.get_personalised_plan_api?segment='+seg+'&goal='+goal+'&target_amount='+tgt+'&years='+yr+'&frequency='+freq+'&initial_deposit='+dep)
         .then(function(r){return r.json();})
         .then(function(d){
@@ -229,6 +375,7 @@
         }).catch(function(e){console.warn('[SmartLife] Plan error',e);});
     }
   };
+
   function attachCards(fsId,stateKey,nextId){
     var fs=el(fsId);if(!fs)return;
     fs.querySelectorAll('input[type="radio"]').forEach(function(r){
@@ -241,10 +388,11 @@
       });
     });
   }
+
   document.addEventListener('DOMContentLoaded',function(){
     attachCards('sl-saver-fieldset','segment','sl-step1-next');
-    attachCards('sl-goal-fieldset','goal','sl-step2-next');
-    console.info('[SmartLife] Self-serve initialised');
+    attachCards('sl-goal-fieldset','goal','sl-step3-next');
+    console.info('[SmartLife] Self-serve v6 initialised');
     var params=new URLSearchParams(window.location.search);
     var ps=params.get('segment');
     if(ps){var r=document.querySelector('input[name="saver_type"][value="'+ps+'"]');if(r){r.checked=true;r.dispatchEvent(new Event('change'));SLServe.next();}}
