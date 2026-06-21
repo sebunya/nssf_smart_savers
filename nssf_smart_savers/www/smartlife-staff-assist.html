@@ -1,0 +1,151 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-staff-assist-wrapper">
+  <h1>Staff-Guided Session</h1>
+  <p class="sl-staff-intro">Use this form to build a personalised plan for your prospect. No real member data should be entered.</p>
+
+  <div class="smartlife-form" id="sl-staff-form">
+    <div class="sl-field">
+      <label>Prospect Segment</label>
+      <select id="sl-sa-segment" required>
+        <option value="">Select segment</option>
+        {% for seg in segments %}
+        <option value="{{ seg.key }}">{{ seg.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Savings Goal</label>
+      <select id="sl-sa-goal" required>
+        <option value="">Select goal</option>
+        {% for goal in goals %}
+        <option value="{{ goal.key }}">{{ goal.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Goal Clarity</label>
+      <select id="sl-sa-goal-clarity">
+        <option value="">Select</option>
+        <option value="Clear">Clear</option>
+        <option value="Partial">Partial</option>
+        <option value="Unclear">Unclear</option>
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Ability to Save</label>
+      <select id="sl-sa-ability">
+        <option value="">Select</option>
+        <option value="Ready">Ready</option>
+        <option value="Hesitant">Hesitant</option>
+        <option value="Unable">Unable</option>
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Initial Deposit Ready?</label>
+      <select id="sl-sa-deposit-ready">
+        <option value="Unsure">Unsure</option>
+        <option value="Yes">Yes</option>
+        <option value="No">No</option>
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Objection (if any)</label>
+      <select id="sl-sa-objection">
+        <option value="">None</option>
+        {% for obj in objections %}
+        <option value="{{ obj.key }}">{{ obj.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Follow-up Channel Preference</label>
+      <select id="sl-sa-channel">
+        {% for ch in follow_up_channels %}
+        <option value="{{ ch }}">{{ ch }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="sl-field">
+      <label>Staff Name / ID (optional — no real personal details)</label>
+      <input type="text" id="sl-sa-staff-owner" placeholder="e.g. DEMO-STAFF-01" maxlength="50">
+    </div>
+
+    <div class="sl-field">
+      <button class="smartlife-btn-primary" onclick="SmartLifeStaff.submitSession()">
+        Generate Script &amp; Log Session
+      </button>
+    </div>
+  </div>
+
+  <div class="sl-staff-result" id="sl-staff-result" style="display:none">
+    <h2>Session Logged</h2>
+    <div class="smartlife-staff-script" id="sl-staff-script-box"></div>
+    <div class="sl-plan-rhythm" id="sl-staff-objection-response"></div>
+    <div class="sl-staff-nba" id="sl-staff-nba"></div>
+    <div class="sl-staff-actions">
+      <a href="/smartlife-self-serve" class="smartlife-btn-primary">Start Self-Serve for Prospect</a>
+      <a href="/smartlife-staff-assist" class="smartlife-btn-secondary" onclick="location.reload()">New Session</a>
+    </div>
+  </div>
+</div>
+
+<script>
+window.SmartLifeStaff = {
+  submitSession: function() {
+    var segment = document.getElementById('sl-sa-segment').value;
+    var goal = document.getElementById('sl-sa-goal').value;
+    var depositReady = document.getElementById('sl-sa-deposit-ready').value;
+    var objection = document.getElementById('sl-sa-objection').value;
+    var channel = document.getElementById('sl-sa-channel').value;
+    var staffOwner = document.getElementById('sl-sa-staff-owner').value;
+
+    if (!segment || !goal) {
+      alert('Please select a segment and goal.');
+      return;
+    }
+
+    var params = new URLSearchParams({
+      segment: segment,
+      goal: goal,
+      initial_deposit_ready: depositReady,
+      objection: objection,
+      follow_up_channel: channel,
+      staff_owner: staffOwner,
+    });
+
+    fetch('/api/method/nssf_smart_savers.api.submit_staff_assist?' + params.toString())
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var result = data.message || data;
+        document.getElementById('sl-staff-form').style.display = 'none';
+        document.getElementById('sl-staff-result').style.display = 'block';
+        document.getElementById('sl-staff-script-box').textContent = result.staff_script || 'No script generated.';
+        document.getElementById('sl-staff-objection-response').textContent = result.objection_response ? 'Objection response: ' + result.objection_response : '';
+        document.getElementById('sl-staff-nba').textContent = 'Next best action: ' + (result.next_best_action || '');
+        if (window.SmartLifeAnalytics) SmartLifeAnalytics.staffAssistStarted({ segment: segment, goal_category: goal });
+      })
+      .catch(function(e) {
+        alert('Error submitting session. See console.');
+        console.error(e);
+      });
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.demoView({ journey_type: 'staff_assist', step_name: 'staff_form' });
+});
+</script>
+{% endblock %}

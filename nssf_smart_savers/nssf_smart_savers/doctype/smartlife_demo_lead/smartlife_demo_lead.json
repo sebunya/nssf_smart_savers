@@ -1,0 +1,42 @@
+{
+  "name": "SmartLife Demo Lead",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "naming_series:",
+  "naming_series": "SL-LEAD-.YYYY.-.####",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "segment", "goal", "goal_label", "target_amount", "years", "frequency",
+    "initial_deposit", "source_of_income", "industry", "country",
+    "staff_assisted", "journey_type", "plan_generated", "payment_simulated",
+    "dropoff_step", "lead_stage", "analytics_labels", "created_session_id", "demo_note"
+  ],
+  "fields": [
+    {"fieldname": "segment", "fieldtype": "Data", "label": "Segment", "reqd": 1},
+    {"fieldname": "goal", "fieldtype": "Data", "label": "Goal", "reqd": 1},
+    {"fieldname": "goal_label", "fieldtype": "Data", "label": "Goal Label"},
+    {"fieldname": "target_amount", "fieldtype": "Currency", "label": "Target Amount"},
+    {"fieldname": "years", "fieldtype": "Int", "label": "Years"},
+    {"fieldname": "frequency", "fieldtype": "Data", "label": "Frequency"},
+    {"fieldname": "initial_deposit", "fieldtype": "Currency", "label": "Initial Deposit"},
+    {"fieldname": "source_of_income", "fieldtype": "Data", "label": "Source of Income"},
+    {"fieldname": "industry", "fieldtype": "Data", "label": "Industry"},
+    {"fieldname": "country", "fieldtype": "Data", "label": "Country", "default": "Uganda"},
+    {"fieldname": "staff_assisted", "fieldtype": "Check", "label": "Staff Assisted"},
+    {"fieldname": "journey_type", "fieldtype": "Data", "label": "Journey Type"},
+    {"fieldname": "plan_generated", "fieldtype": "Check", "label": "Plan Generated"},
+    {"fieldname": "payment_simulated", "fieldtype": "Check", "label": "Payment Simulated"},
+    {"fieldname": "dropoff_step", "fieldtype": "Data", "label": "Dropoff Step"},
+    {"fieldname": "lead_stage", "fieldtype": "Data", "label": "Lead Stage", "default": "New"},
+    {"fieldname": "analytics_labels", "fieldtype": "Small Text", "label": "Analytics Labels"},
+    {"fieldname": "created_session_id", "fieldtype": "Data", "label": "Session ID"},
+    {"fieldname": "demo_note", "fieldtype": "Small Text", "label": "Demo Note", "default": "SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data."}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

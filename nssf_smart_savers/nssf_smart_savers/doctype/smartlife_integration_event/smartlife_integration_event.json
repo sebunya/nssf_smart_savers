@@ -1,0 +1,32 @@
+{
+  "name": "SmartLife Integration Event",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "hash",
+  "is_submittable": 0,
+  "track_changes": 0,
+  "custom": 0,
+  "field_order": [
+    "event_type", "event_source", "event_status", "payload_summary",
+    "related_doctype", "related_name", "processed_at", "error_message",
+    "retry_count", "idempotency_key", "is_simulated"
+  ],
+  "fields": [
+    {"fieldname": "event_type", "fieldtype": "Data", "label": "Event Type"},
+    {"fieldname": "event_source", "fieldtype": "Data", "label": "Event Source"},
+    {"fieldname": "event_status", "fieldtype": "Select", "label": "Event Status", "options": "\nreceived\nprocessed\nfailed\nsimulated"},
+    {"fieldname": "payload_summary", "fieldtype": "Small Text", "label": "Payload Summary"},
+    {"fieldname": "related_doctype", "fieldtype": "Data", "label": "Related DocType"},
+    {"fieldname": "related_name", "fieldtype": "Data", "label": "Related Name"},
+    {"fieldname": "processed_at", "fieldtype": "Datetime", "label": "Processed At"},
+    {"fieldname": "error_message", "fieldtype": "Data", "label": "Error Message"},
+    {"fieldname": "retry_count", "fieldtype": "Int", "label": "Retry Count"},
+    {"fieldname": "idempotency_key", "fieldtype": "Data", "label": "Idempotency Key"},
+    {"fieldname": "is_simulated", "fieldtype": "Check", "label": "Is Simulated", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

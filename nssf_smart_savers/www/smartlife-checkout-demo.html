@@ -1,0 +1,115 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-checkout-wrapper">
+  <h1>SmartLife Flexi — Demo Checkout</h1>
+  <div class="sl-checkout-demo-badge">🔒 DEMO — No real payment will be collected</div>
+
+  <div class="sl-checkout-summary" id="sl-checkout-summary">
+    <h2>Your Plan Summary</h2>
+    <div class="sl-summary-row"><span>Product:</span><span>SmartLife Flexi Demo Contribution</span></div>
+    <div class="sl-summary-row"><span>Goal:</span><span id="co-goal">—</span></div>
+    <div class="sl-summary-row"><span>Frequency:</span><span id="co-frequency">—</span></div>
+    <div class="sl-summary-row"><span>Amount:</span><span id="co-amount">—</span></div>
+  </div>
+
+  <div class="sl-payment-method-section" id="sl-payment-method">
+    <h3>Select Payment Method (Demo)</h3>
+    <div class="sl-payment-options">
+      <label class="sl-payment-option">
+        <input type="radio" name="payment_method" value="mobile_money" checked>
+        📱 Mobile Money (MTN / Airtel) — Demo
+      </label>
+      <label class="sl-payment-option">
+        <input type="radio" name="payment_method" value="bank_transfer">
+        🏦 Bank Transfer — Demo
+      </label>
+    </div>
+  </div>
+
+  <div class="sl-checkout-actions" id="sl-checkout-actions">
+    <button class="smartlife-btn-primary" onclick="SLCheckout.confirmPayment()" id="sl-pay-btn">
+      Confirm and Pay (Demo)
+    </button>
+    <a href="/smartlife-self-serve" class="smartlife-btn-secondary">Back to Plan</a>
+  </div>
+
+  <div class="sl-payment-status" id="sl-payment-status" style="display:none">
+    <div class="sl-payment-pending" id="sl-payment-pending">
+      <div class="sl-spinner"></div>
+      <p>Processing demo payment...</p>
+    </div>
+    <div class="sl-payment-success" id="sl-payment-success" style="display:none">
+      <div class="sl-success-icon">✅</div>
+      <h2>Payment Simulated Successfully!</h2>
+      <p class="sl-demo-tag">This is a demo. No real funds were transferred.</p>
+      <div id="sl-payment-ref"></div>
+      <a href="/smartlife-thank-you" class="smartlife-btn-primary">Continue to Summary</a>
+    </div>
+    <div class="sl-payment-error" id="sl-payment-error" style="display:none">
+      <div class="sl-error-icon">❌</div>
+      <h2>Demo Payment Failed</h2>
+      <button class="smartlife-btn-secondary" onclick="SLCheckout.retry()">Retry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.SLCheckout = {
+  confirmPayment: function() {
+    var params = new URLSearchParams(window.location.search);
+    var leadName = params.get('lead') || 'DEMO';
+    var amount = params.get('amount') || '50000';
+    var frequency = params.get('frequency') || 'monthly';
+    var goal = params.get('goal') || 'other';
+
+    document.getElementById('sl-checkout-actions').style.display = 'none';
+    document.getElementById('sl-payment-method').style.display = 'none';
+    document.getElementById('sl-payment-status').style.display = 'block';
+    document.getElementById('sl-payment-pending').style.display = 'block';
+
+    setTimeout(function() {
+      fetch('/api/method/nssf_smart_savers.api.simulate_payment?demo_lead_name=' + encodeURIComponent(leadName) +
+        '&amount=' + amount + '&frequency=' + frequency + '&goal=' + goal)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var result = data.message || data;
+          document.getElementById('sl-payment-pending').style.display = 'none';
+          if (result.success) {
+            document.getElementById('sl-payment-success').style.display = 'block';
+            document.getElementById('sl-payment-ref').textContent = 'Reference: ' + (result.payment_reference || '');
+            if (window.SmartLifeAnalytics) SmartLifeAnalytics.paymentSimulated('success', { frequency: frequency, goal_category: goal });
+          } else {
+            document.getElementById('sl-payment-error').style.display = 'block';
+          }
+        })
+        .catch(function(e) {
+          document.getElementById('sl-payment-pending').style.display = 'none';
+          document.getElementById('sl-payment-error').style.display = 'block';
+        });
+    }, 1500);
+  },
+  retry: function() {
+    document.getElementById('sl-payment-status').style.display = 'none';
+    document.getElementById('sl-payment-error').style.display = 'none';
+    document.getElementById('sl-checkout-actions').style.display = 'block';
+    document.getElementById('sl-payment-method').style.display = 'block';
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  var goal = params.get('goal') || 'Other';
+  var frequency = params.get('frequency') || 'Monthly';
+  var amount = params.get('amount') || '50,000';
+  document.getElementById('co-goal').textContent = goal;
+  document.getElementById('co-frequency').textContent = frequency;
+  document.getElementById('co-amount').textContent = 'UGX ' + parseInt(amount).toLocaleString();
+  if (window.SmartLifeAnalytics) SmartLifeAnalytics.demoView({ journey_type: 'checkout', step_name: 'checkout_demo' });
+});
+</script>
+{% endblock %}

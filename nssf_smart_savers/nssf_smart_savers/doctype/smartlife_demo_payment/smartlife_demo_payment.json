@@ -1,0 +1,42 @@
+{
+  "name": "SmartLife Demo Payment",
+  "module": "Nssf Smart Savers",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "autoname": "naming_series:",
+  "naming_series": "SL-PAY-.YYYY.-.####",
+  "is_submittable": 0,
+  "track_changes": 1,
+  "custom": 0,
+  "field_order": [
+    "demo_lead", "amount", "frequency", "goal", "payment_status",
+    "payment_reference", "provider_mode", "provider_name",
+    "initiated_at", "completed_at", "callback_received", "ipn_received",
+    "verification_attempted", "failure_reason", "retry_count",
+    "idempotency_key", "event_log", "is_demo"
+  ],
+  "fields": [
+    {"fieldname": "demo_lead", "fieldtype": "Link", "label": "Demo Lead", "options": "SmartLife Demo Lead"},
+    {"fieldname": "amount", "fieldtype": "Currency", "label": "Amount"},
+    {"fieldname": "frequency", "fieldtype": "Data", "label": "Frequency"},
+    {"fieldname": "goal", "fieldtype": "Data", "label": "Goal"},
+    {"fieldname": "payment_status", "fieldtype": "Select", "label": "Payment Status", "options": "\nPending\nInitiated\nSuccess\nFailed\nCancelled"},
+    {"fieldname": "payment_reference", "fieldtype": "Data", "label": "Payment Reference"},
+    {"fieldname": "provider_mode", "fieldtype": "Select", "label": "Provider Mode", "options": "\ndemo\nsandbox\nlive", "default": "demo"},
+    {"fieldname": "provider_name", "fieldtype": "Data", "label": "Provider Name", "default": "Pesapal (Demo)"},
+    {"fieldname": "initiated_at", "fieldtype": "Datetime", "label": "Initiated At"},
+    {"fieldname": "completed_at", "fieldtype": "Datetime", "label": "Completed At"},
+    {"fieldname": "callback_received", "fieldtype": "Check", "label": "Callback Received"},
+    {"fieldname": "ipn_received", "fieldtype": "Check", "label": "IPN Received"},
+    {"fieldname": "verification_attempted", "fieldtype": "Check", "label": "Verification Attempted"},
+    {"fieldname": "failure_reason", "fieldtype": "Data", "label": "Failure Reason"},
+    {"fieldname": "retry_count", "fieldtype": "Int", "label": "Retry Count"},
+    {"fieldname": "idempotency_key", "fieldtype": "Data", "label": "Idempotency Key"},
+    {"fieldname": "event_log", "fieldtype": "Long Text", "label": "Event Log"},
+    {"fieldname": "is_demo", "fieldtype": "Check", "label": "Is Demo", "default": "1"}
+  ],
+  "permissions": [
+    {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1},
+    {"role": "All", "read": 0, "write": 0, "create": 0, "delete": 0}
+  ]
+}

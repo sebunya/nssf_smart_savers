@@ -1,0 +1,63 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<div class="smartlife-demo-notice">
+  ⚠️ SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data.
+</div>
+
+<div class="smartlife-thankyou-wrapper">
+  <div class="sl-success-animation">
+    <div class="sl-success-circle">✅</div>
+  </div>
+
+  <h1 class="sl-thankyou-title">You're on your way!</h1>
+  <p class="sl-thankyou-subtitle">Your SmartLife Flexi plan has been simulated successfully.</p>
+  <div class="sl-demo-badge">DEMO ENVIRONMENT — No real account created</div>
+
+  <div class="sl-plan-summary-card">
+    <h2>Your Plan Summary</h2>
+    <div class="sl-summary-row"><span>Status:</span><span class="sl-status-active">Active (Demo)</span></div>
+    <div class="sl-summary-row"><span>Goal:</span><span id="ty-goal">—</span></div>
+    <div class="sl-summary-row"><span>Frequency:</span><span id="ty-frequency">—</span></div>
+    <div class="sl-summary-row"><span>Projected Growth:</span><span>10% indicative annual return</span></div>
+  </div>
+
+  <div class="sl-next-steps">
+    <h3>Next Steps (In a real account)</h3>
+    <ol>
+      <li>Complete NSSF voluntary member registration</li>
+      <li>Set up your chosen payment method</li>
+      <li>Make your first contribution</li>
+      <li>Track your progress in the NSSF member portal</li>
+    </ol>
+  </div>
+
+  <div class="sl-thankyou-actions">
+    <a href="/smartlife-support-demo" class="smartlife-btn-secondary">
+      💬 Get Support
+    </a>
+    <a href="/smartlife-staff-assist" class="smartlife-btn-secondary">
+      🤝 Talk to Staff
+    </a>
+    <a href="/smartlife-flexi-demo" class="smartlife-btn-primary">
+      🔄 Restart Demo
+    </a>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  document.getElementById('ty-goal').textContent = params.get('goal') || 'Not specified';
+  document.getElementById('ty-frequency').textContent = params.get('frequency') || 'Not specified';
+  if (window.SmartLifeAnalytics) {
+    SmartLifeAnalytics.demoSubmit({
+      journey_type: 'self_serve',
+      goal_category: params.get('goal') || '',
+      frequency: params.get('frequency') || '',
+      completion_status: 'complete'
+    });
+  }
+});
+</script>
+{% endblock %}
