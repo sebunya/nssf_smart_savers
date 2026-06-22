@@ -1,0 +1,221 @@
+{% comment %}
+  SmartLife Flexi — Critical brand shell include
+  Include at the top of every SmartLife public template (inside {% block page_content %}).
+  Provides:
+    1. Route flag — adds sl-demo-route to <html> synchronously
+    2. Critical inline CSS — hides Frappe chrome, renders brand bar, cannot be blocked by cache
+    3. JS fallback — DOM-walks and hides any Frappe navbar/footer elements that survive CSS
+{% endcomment %}
+
+<script>
+(function () {
+  var path = window.location.pathname || "";
+  if (!path.startsWith("/smartlife-")) return;
+  document.documentElement.classList.add("sl-demo-route");
+  function markBody() {
+    if (document.body) document.body.classList.add("sl-demo-route");
+  }
+  markBody();
+  document.addEventListener("DOMContentLoaded", markBody);
+})();
+</script>
+
+<style id="sl-critical-brand-shell">
+/* ── Frappe chrome suppression ───────────────────────────────── */
+html.sl-demo-route body,
+body.sl-demo-route {
+  margin: 0 !important;
+  padding-top: 0 !important;
+  background: #F8F9FA !important;
+}
+
+html.sl-demo-route .navbar,
+html.sl-demo-route .web-header,
+html.sl-demo-route .web-navbar,
+html.sl-demo-route header.navbar,
+html.sl-demo-route nav.navbar,
+html.sl-demo-route [class*="navbar"]:not(.sl-brand-bar):not(.sl-brand-bar *),
+html.sl-demo-route .page-breadcrumbs,
+html.sl-demo-route .breadcrumb,
+html.sl-demo-route .web-footer,
+html.sl-demo-route footer.web-footer,
+html.sl-demo-route footer:not([class*="sl-"]),
+html.sl-demo-route .footer-section,
+body.sl-demo-route .navbar,
+body.sl-demo-route .web-header,
+body.sl-demo-route .web-navbar,
+body.sl-demo-route header.navbar,
+body.sl-demo-route nav.navbar,
+body.sl-demo-route .page-breadcrumbs,
+body.sl-demo-route .breadcrumb,
+body.sl-demo-route .web-footer,
+body.sl-demo-route footer.web-footer,
+body.sl-demo-route footer:not([class*="sl-"]),
+body.sl-demo-route .footer-section {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+html.sl-demo-route .page_content,
+html.sl-demo-route .web-page-content,
+html.sl-demo-route .page-content,
+html.sl-demo-route .main-section,
+html.sl-demo-route .container.page_content,
+body.sl-demo-route .page_content,
+body.sl-demo-route .web-page-content,
+body.sl-demo-route .page-content,
+body.sl-demo-route .main-section,
+body.sl-demo-route .container.page_content {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* ── Brand shell ─────────────────────────────────────────────── */
+.sl-brand-shell {
+  width: 100% !important;
+  min-height: 100vh !important;
+  background:
+    radial-gradient(circle at top left, rgba(0,174,239,0.10), transparent 32rem),
+    linear-gradient(180deg, #F8F9FA 0%, #FFFFFF 44%, #F8F9FA 100%) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif !important;
+}
+
+/* ── Brand bar ───────────────────────────────────────────────── */
+.sl-brand-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 clamp(18px, 5vw, 72px) !important;
+  height: 64px !important;
+  background: linear-gradient(90deg, #002060 0%, #0F2C59 72%, #002060 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-bottom: 4px solid #00A859 !important;
+  box-shadow: 0 8px 24px rgba(0,32,96,0.20) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 9999 !important;
+}
+
+.sl-brand-lockup {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.sl-brand-mark {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 52px !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  border: 1.5px solid rgba(0,174,239,0.80) !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.10) !important;
+  color: #FFFFFF !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+}
+
+.sl-brand-title {
+  color: #FFFFFF !important;
+  font-size: clamp(15px, 2.2vw, 20px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.01em !important;
+  text-decoration: none !important;
+}
+
+.sl-brand-tagline {
+  color: rgba(255,255,255,0.80) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+.sl-brand-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(0,168,89,0.20) !important;
+  border: 1px solid rgba(0,168,89,0.60) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* ── Demo notice inline style ────────────────────────────────── */
+.sl-demo-notice {
+  background: #fef9ec !important;
+  border-left: 4px solid #002060 !important;
+  color: #002060 !important;
+  padding: 9px 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  margin: 0 !important;
+}
+</style>
+
+<script>
+(function () {
+  var path = window.location.pathname || "";
+  if (!path.startsWith("/smartlife-")) return;
+
+  function hideFrappeChrome() {
+    var selectors = [
+      ".navbar", ".web-header", ".web-navbar",
+      "header.navbar", "nav.navbar",
+      ".page-breadcrumbs", ".breadcrumb",
+      ".web-footer", "footer.web-footer"
+    ];
+    selectors.forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        if (el.closest && el.closest(".sl-brand-shell")) return;
+        el.style.setProperty("display", "none", "important");
+        el.style.setProperty("visibility", "hidden", "important");
+        el.style.setProperty("height", "0", "important");
+        el.style.setProperty("min-height", "0", "important");
+        el.style.setProperty("overflow", "hidden", "important");
+        el.style.setProperty("margin", "0", "important");
+        el.style.setProperty("padding", "0", "important");
+      });
+    });
+    ["page_content", "web-page-content", "page-content", "main-section"].forEach(function (cls) {
+      document.querySelectorAll("." + cls).forEach(function (el) {
+        el.style.setProperty("padding-top", "0", "important");
+        el.style.setProperty("margin-top", "0", "important");
+      });
+    });
+  }
+
+  hideFrappeChrome();
+  document.addEventListener("DOMContentLoaded", hideFrappeChrome);
+  window.addEventListener("load", hideFrappeChrome);
+  setTimeout(hideFrappeChrome, 150);
+  setTimeout(hideFrappeChrome, 600);
+
+  if ("MutationObserver" in window) {
+    var _obs = new MutationObserver(hideFrappeChrome);
+    document.addEventListener("DOMContentLoaded", function () {
+      if (document.body) _obs.observe(document.body, { childList: true, subtree: true });
+    });
+  }
+})();
+</script>
