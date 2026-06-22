@@ -364,6 +364,36 @@ Use Incognito or hard refresh. Mac Chrome: `Cmd + Shift + R`
 
 ---
 
+## STEP 10b — Visual brand acceptance gate
+
+Open each SmartLife route in Incognito / Empty Cache and Hard Reload.
+
+**The deployment is NOT accepted until every item below is visually confirmed:**
+
+| Check | Expected |
+|---|---|
+| Frappe `Home / Login` navbar | **Not visible** on any SmartLife route |
+| Custom navy bar at top | Present on every SmartLife route |
+| Bar content | Shows `NSSF` badge (sky-outlined), `SmartLife Flexi` title, `Prototype review` tag |
+| Green accent line | Visible below the navy bar |
+| Page background | Off-white (`#F8F9FA`), not white Bootstrap default |
+| Headings | NSSF navy (`#002060`) — not black, not grey |
+| Saver type cards | Circle icon badges, navy title, slate description, visible border |
+| Card selected state | Green border + pale green background + green check circle |
+| Card hover state | Sky blue border glow |
+| Primary CTA buttons | Solid NSSF green (`#00A859`) with white text |
+| Secondary buttons | Navy outline |
+| Stepper active step | Green circle, bold navy label |
+| Stepper inactive steps | Grey circle, muted label |
+| Step 2 "Date of birth" | Date picker visible — **no number input for age** |
+| DOB age preview | Shows green calculated age after date selected |
+| Privacy box | Pale sky background with navy text |
+| Prototype notice | Compact, institutional — not raw browser `alert()` style |
+| Browser console | No fatal JavaScript errors |
+| URL at any step | No PII in query string |
+
+---
+
 ## Final acceptance criteria
 
 Deployment is complete only when all 10 are true:
@@ -371,10 +401,14 @@ Deployment is complete only when all 10 are true:
 1. `phase-1-smartlife-onboarding` includes the latest Claude DOB/NSSF brand commits
 2. `bench migrate` passes
 3. `bench build --app nssf_smart_savers` passes
-4. Origin rendered HTML contains `Date of birth`, `smartlife.css`, `smartlife.js`, and `sl-choice-card`
+4. Origin rendered HTML contains `Date of birth`, `smartlife.css`, `smartlife.js`, `sl-choice-card`, and `sl-brand-shell`
 5. Public rendered HTML contains the same
 6. Live CSS contains `#002060`, `#0F2C59`, `#00AEEF`, `#00A3E0`, `#00A859`, and `#107C41`
 7. Smoke test passes or leaves only a documented non-blocking warning
-8. Browser shows the styled NSSF interface
-9. DOB replaces Age and calculates age preview
-10. PII is stored server-side only and is not sent to analytics, URLs or console logs
+8. Browser: default Frappe `Home/Login` navbar is hidden on all SmartLife routes
+9. Browser: custom NSSF navy brand bar with `SmartLife Flexi` title is visible on all SmartLife routes
+10. Browser: navy dominates headings, green owns CTAs and active progress, sky blue is focus/accent
+11. Browser: saver cards are styled (circle icon badge, selected green state, hover sky state)
+12. Browser: Step 2 shows `Date of birth` date picker — no manual age number input
+13. Browser: selecting DOB shows green calculated age preview
+14. PII is stored server-side only and is not sent to analytics, URLs or console logs
