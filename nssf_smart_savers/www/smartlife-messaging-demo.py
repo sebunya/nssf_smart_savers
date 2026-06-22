@@ -14,6 +14,7 @@ def get_context(context):
     context.title = "SmartLife Messaging Console"
     context.is_demo = True
     context.no_breadcrumbs = True
+    context.no_cache = 1
     context.demo_notice = (
         "SmartLife Flexi — Internal Messaging Console. "
         "Staff use only. Credentials are never shown here."
