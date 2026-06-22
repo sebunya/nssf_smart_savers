@@ -133,7 +133,7 @@ for ROUTE in "/smartlife-self-serve" "/smartlife-staff-assist" "/smartlife-proje
   F="${ROUTE_FILES[$ROUTE]}"
   contains_file "$F" "sl-brand-shell|sl-brand-bar" "Brand shell in $ROUTE"
   contains_file "$F" "sl-demo-route"                "sl-demo-route class in $ROUTE"
-  contains_file "$F" "NSSF SmartLife Flexi"         "Brand title in $ROUTE"
+  contains_file "$F" 'data-brand-title="NSSF SmartLife Flexi"|aria-label="NSSF SmartLife Flexi"|sl-brand-mark.*NSSF|sl-brand-title.*SmartLife' "Brand title in $ROUTE"
 done
 
 # ── 5. Design system classes ──────────────────────────────────────
