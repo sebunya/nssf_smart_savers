@@ -1,11 +1,11 @@
-{% comment %}
+{#
   SmartLife Flexi — Critical brand shell include
   Include at the top of every SmartLife public template (inside {% block page_content %}).
   Provides:
     1. Route flag — adds sl-demo-route to <html> synchronously
     2. Critical inline CSS — hides Frappe chrome, renders brand bar, cannot be blocked by cache
     3. JS fallback — DOM-walks and hides any Frappe navbar/footer elements that survive CSS
-{% endcomment %}
+#}
 
 <script>
 (function () {
