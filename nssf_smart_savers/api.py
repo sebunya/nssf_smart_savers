@@ -832,3 +832,113 @@ def get_lead_full_detail(lead_name):
         },
         "demo_notice": DEMO_NOTICE,
     }
+
+
+# ── Phase 4: Messaging APIs ────────────────────────────────────────────────────
+
+
+@frappe.whitelist(allow_guest=True)
+def get_message_templates(channel=None):
+    """
+    Return available message template metadata.
+    Guest-safe: returns template names, channels and trigger stages only.
+    No lead PII. No message bodies.
+    """
+    from nssf_smart_savers.communication_templates import list_templates
+    return {
+        "success":   True,
+        "templates": list_templates(channel=channel or None),
+    }
+
+
+@frappe.whitelist()
+def preview_smartlife_message(lead_name, template_name, channel="SMS"):
+    """
+    Preview a rendered message for a lead.
+    Requires authenticated staff session.
+    Full PII (first_name) in preview requires approved personalisation role.
+    """
+    _require_personalisation_access()
+    lead_name     = sanitise_demo_text(str(lead_name or ""), 50)
+    template_name = sanitise_demo_text(str(template_name or ""), 80)
+    channel       = str(channel or "SMS")
+    if channel not in ("SMS", "Email"):
+        frappe.throw("Channel must be SMS or Email.")
+    from nssf_smart_savers.messaging import preview_message
+    return preview_message(lead_name=lead_name, template_name=template_name, channel=channel)
+
+
+@frappe.whitelist()
+def send_smartlife_demo_message(lead_name, template_name, channel="SMS"):
+    """
+    Send a message to a lead via the specified channel.
+    Requires approved personalisation role.
+    Enforces consent_to_contact before send.
+    Never guest-open.
+    """
+    _require_personalisation_access()
+    lead_name     = sanitise_demo_text(str(lead_name or ""), 50)
+    template_name = sanitise_demo_text(str(template_name or ""), 80)
+    channel       = str(channel or "SMS")
+    if not lead_name or not template_name:
+        frappe.throw("lead_name and template_name are required.")
+    if channel not in ("SMS", "Email"):
+        frappe.throw("Channel must be SMS or Email.")
+    from nssf_smart_savers.messaging import send_smartlife_message
+    result = send_smartlife_message(
+        lead_name=lead_name,
+        template_name=template_name,
+        channel=channel,
+        staff_user=frappe.session.user,
+    )
+    return result
+
+
+@frappe.whitelist()
+def get_communication_history(lead_name, limit=20):
+    """
+    Return communication history for a lead.
+    Requires approved personalisation role.
+    Returns masked recipient only — never raw phone/email.
+    """
+    _require_personalisation_access()
+    lead_name = sanitise_demo_text(str(lead_name or ""), 50)
+    if not lead_name:
+        frappe.throw("lead_name is required.")
+    try:
+        limit = max(1, min(int(limit), 100))
+    except (ValueError, TypeError):
+        limit = 20
+    logs = frappe.db.get_all(
+        "SmartLife Communication Log",
+        filters={"lead": lead_name},
+        fields=[
+            "name", "channel", "template_name", "recipient_masked",
+            "message_status", "provider", "provider_reference",
+            "sent_on", "failure_reason", "consent_snapshot",
+            "staff_owner", "triggered_by_stage", "demo_mode",
+        ],
+        order_by="sent_on desc",
+        limit=limit,
+    )
+    return {
+        "success": True,
+        "lead":    lead_name,
+        "history": [dict(l) for l in logs],
+        "count":   len(logs),
+    }
+
+
+@frappe.whitelist()
+def get_messaging_config_status():
+    """
+    Return provider config status — booleans and status strings only.
+    Never reveals secret values, token fragments, or credential content.
+    Requires authenticated staff session.
+    """
+    _require_authenticated_staff()
+    from nssf_smart_savers.messaging import get_messaging_provider_status
+    return {
+        "success": True,
+        "config":  get_messaging_provider_status(),
+    }
