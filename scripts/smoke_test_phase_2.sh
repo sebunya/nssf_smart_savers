@@ -41,15 +41,26 @@ contains_file() {
 
 NETWORK_AVAILABLE=""
 _check_network() {
-  if [ -z "$NETWORK_AVAILABLE" ]; then
-    local body
-    body=$(curl -ksS -o - -w "" --max-time 8 "$BASE/" 2>/dev/null | head -c 200)
-    if echo "$body" | grep -qi "not in allowlist\|network egress\|blocked\|forbidden"; then
-      NETWORK_AVAILABLE="no"
-    else
-      NETWORK_AVAILABLE="yes"
-    fi
+  if [ -z "${BASE:-}" ]; then
+    NETWORK_AVAILABLE="no"
+    return 0
   fi
+
+  local tmp_file
+  tmp_file="$(mktemp)"
+
+  if curl -ksS --max-time 8 "$BASE/" -o "$tmp_file" >/dev/null 2>&1; then
+    if [ -s "$tmp_file" ]; then
+      NETWORK_AVAILABLE="yes"
+    else
+      NETWORK_AVAILABLE="no"
+    fi
+  else
+    NETWORK_AVAILABLE="no"
+  fi
+
+  rm -f "$tmp_file"
+  return 0
 }
 
 http_ok() {
