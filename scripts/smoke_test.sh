@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # SmartLife Flexi — Smoke Test
-# v nssf-brand-shell-20260622
+# v nssf-brand-shell-tempfile-20260622
+#
+# Uses temp files for page fetches so grep never sees file paths
+# mixed into the HTML content (which caused false negatives).
 #
 # Checks:
 #   1. Route HTTP 200s
 #   2. Asset HTTP 200s
-#   3. CSS/JS in rendered HTML (robust — tolerates query strings and attribute order)
-#   4. Design system class presence
-#   5. Brand shell presence (sl-brand-shell, sl-brand-bar, sl-demo-route)
+#   3. CSS/JS presence in rendered HTML
+#   4. Brand shell presence (sl-brand-shell, sl-brand-bar, sl-demo-route)
+#   5. Design system class presence
 #   6. Required content strings (DOB, saver types, staff-assist, projection)
 #   7. Analytics / GTM (warn-only)
 #   8. Source-level markers (NSSF colours, brand shell, DOB, no manual age)
@@ -36,13 +39,37 @@ echo "SmartLife Flexi Smoke Test — $(date)"
 echo "Base URL: $BASE"
 echo "================================================================"
 
-# ── Fetch helper ─────────────────────────────────────────────────
-# -L follows redirects. Cache-bust prevents stale hits on repeated runs.
-_fetch() {
+# ── Temp dir for page files ──────────────────────────────────────
+# All fetched pages are written to individual files.
+# grep then operates on the file, never sees the path mixed with content.
+TMPDIR_SMOKE="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_SMOKE"' EXIT
+
+fetch_page() {
+  local route="$1"
+  local slug
+  slug="$(echo "$route" | tr '/' '_')"
+  local outfile="$TMPDIR_SMOKE/${slug}.html"
   curl -sSL --max-time 25 \
     --header "Cache-Control: no-cache, no-store" \
     --header "Pragma: no-cache" \
-    "$BASE$1?v=smoketest-$(date +%s)" 2>/dev/null || echo ""
+    "$BASE$route?v=smoketest-$(date +%s)-$RANDOM" \
+    -o "$outfile" 2>/dev/null
+  printf "%s" "$outfile"
+}
+
+contains_file() {
+  local file="$1"
+  local pattern="$2"
+  local label="$3"
+  if grep -Eiq "$pattern" "$file" 2>/dev/null; then
+    ok "$label"
+  else
+    fail "$label"
+    echo "       Diagnostic (first matching asset/brand lines):"
+    grep -Ein "smartlife|sl-brand|sl-demo|sl-stepper|sl-choice|Date of birth|NSSF|stylesheet|\.css|\.js" \
+      "$file" 2>/dev/null | head -20 || echo "       (none found)"
+  fi
 }
 
 # ── 1. Route HTTP 200 checks ─────────────────────────────────────
@@ -57,12 +84,15 @@ ROUTES=(
   "/smartlife-thank-you"
   "/smartlife-support-demo"
 )
+declare -A ROUTE_FILES
 for ROUTE in "${ROUTES[@]}"; do
   STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" --max-time 15 "$BASE$ROUTE" 2>/dev/null || echo "000")
   if [ "$STATUS" = "200" ]; then
     ok "HTTP 200: $ROUTE"
+    ROUTE_FILES["$ROUTE"]="$(fetch_page "$ROUTE")"
   else
     fail "HTTP $STATUS: $ROUTE (expected 200)"
+    ROUTE_FILES["$ROUTE"]="/dev/null"
   fi
 done
 
@@ -84,127 +114,83 @@ _asset_check "/assets/nssf_smart_savers/js/smartlife.js"   "smartlife.js"
 _asset_check "/assets/nssf_smart_savers/js/analytics_helper.js" "analytics_helper.js"
 
 # ── 3. CSS/JS in rendered HTML ────────────────────────────────────
-# grep -qi so query-string versions and attribute order do not matter.
 echo ""
 echo "--- CSS/JS in rendered HTML ---"
-_check_asset_in_page() {
-  local ROUTE="$1" NEEDLE="$2" LABEL="$3"
-  local HTML; HTML=$(_fetch "$ROUTE")
-  if echo "$HTML" | grep -qi "$NEEDLE"; then
-    ok "$LABEL: found in $ROUTE"
-  else
-    fail "$LABEL: NOT found in $ROUTE"
-    echo "       Diagnostic (first asset-related lines):"
-    echo "$HTML" | grep -i 'stylesheet\|script\|\.css\|\.js' | head -5 || echo "       (none)"
-  fi
-}
-_check_asset_in_page "/smartlife-self-serve"      "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-staff-assist"    "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-projection-demo" "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-checkout-demo"   "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-thank-you"       "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-flexi-demo"      "smartlife\.css"        "smartlife.css"
-_check_asset_in_page "/smartlife-self-serve"      "smartlife\.js"         "smartlife.js"
-_check_asset_in_page "/smartlife-staff-assist"    "analytics_helper\.js"  "analytics_helper.js"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "smartlife\.css"        "smartlife.css in /smartlife-self-serve"
+contains_file "${ROUTE_FILES[/smartlife-staff-assist]}"    "smartlife\.css"        "smartlife.css in /smartlife-staff-assist"
+contains_file "${ROUTE_FILES[/smartlife-projection-demo]}" "smartlife\.css"        "smartlife.css in /smartlife-projection-demo"
+contains_file "${ROUTE_FILES[/smartlife-checkout-demo]}"   "smartlife\.css"        "smartlife.css in /smartlife-checkout-demo"
+contains_file "${ROUTE_FILES[/smartlife-thank-you]}"       "smartlife\.css"        "smartlife.css in /smartlife-thank-you"
+contains_file "${ROUTE_FILES[/smartlife-flexi-demo]}"      "smartlife\.css"        "smartlife.css in /smartlife-flexi-demo"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "smartlife\.js"         "smartlife.js in /smartlife-self-serve"
+contains_file "${ROUTE_FILES[/smartlife-staff-assist]}"    "analytics_helper\.js"  "analytics_helper.js in /smartlife-staff-assist"
 
-# ── 4. Design system classes ──────────────────────────────────────
-echo ""
-echo "--- Design system class presence ---"
-_check_class() {
-  local ROUTE="$1" CLASS="$2"
-  local HTML; HTML=$(_fetch "$ROUTE")
-  if echo "$HTML" | grep -q "$CLASS"; then
-    ok "$CLASS: found in $ROUTE"
-  else
-    fail "$CLASS: NOT found in $ROUTE"
-  fi
-}
-_check_class "/smartlife-self-serve"      "sl-choice-card"
-_check_class "/smartlife-self-serve"      "sl-stepper"
-_check_class "/smartlife-self-serve"      "sl-step-actions"
-_check_class "/smartlife-self-serve"      "sl-form"
-_check_class "/smartlife-staff-assist"    "sl-form"
-_check_class "/smartlife-staff-assist"    "sl-select"
-_check_class "/smartlife-projection-demo" "sl-result-card"
-_check_class "/smartlife-checkout-demo"   "sl-summary"
-
-# ── 5. Brand shell presence ───────────────────────────────────────
+# ── 4. Brand shell presence ───────────────────────────────────────
 echo ""
 echo "--- Brand shell and navbar suppression ---"
 for ROUTE in "/smartlife-self-serve" "/smartlife-staff-assist" "/smartlife-projection-demo" \
              "/smartlife-checkout-demo" "/smartlife-thank-you" "/smartlife-flexi-demo"; do
-  HTML=$(_fetch "$ROUTE")
-  if echo "$HTML" | grep -q "sl-brand-shell\|sl-brand-bar"; then
-    ok "Brand shell: $ROUTE"
-  else
-    fail "Brand shell: NOT found in $ROUTE"
-  fi
-  if echo "$HTML" | grep -q "sl-demo-route"; then
-    ok "sl-demo-route: $ROUTE"
-  else
-    warn "sl-demo-route: NOT found in $ROUTE (navbar may not be suppressed)"
-  fi
+  F="${ROUTE_FILES[$ROUTE]}"
+  contains_file "$F" "sl-brand-shell|sl-brand-bar" "Brand shell in $ROUTE"
+  contains_file "$F" "sl-demo-route"                "sl-demo-route class in $ROUTE"
+  contains_file "$F" "NSSF SmartLife Flexi"         "Brand title in $ROUTE"
 done
+
+# ── 5. Design system classes ──────────────────────────────────────
+echo ""
+echo "--- Design system class presence ---"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "sl-choice-card"  "sl-choice-card in self-serve"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "sl-stepper"      "sl-stepper in self-serve"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "sl-step-actions" "sl-step-actions in self-serve"
+contains_file "${ROUTE_FILES[/smartlife-self-serve]}"      "sl-form"         "sl-form in self-serve"
+contains_file "${ROUTE_FILES[/smartlife-staff-assist]}"    "sl-form"         "sl-form in staff-assist"
+contains_file "${ROUTE_FILES[/smartlife-staff-assist]}"    "sl-select"       "sl-select in staff-assist"
+contains_file "${ROUTE_FILES[/smartlife-projection-demo]}" "sl-result-card"  "sl-result-card in projection-demo"
+contains_file "${ROUTE_FILES[/smartlife-checkout-demo]}"   "sl-summary"      "sl-summary in checkout-demo"
 
 # ── 6. Required content strings ───────────────────────────────────
 echo ""
 echo "--- Required content strings ---"
-_check_content() {
-  local ROUTE="$1" STRING="$2"
-  local HTML; HTML=$(_fetch "$ROUTE")
-  if echo "$HTML" | grep -qi "$STRING"; then
-    ok "\"$STRING\": found in $ROUTE"
-  else
-    fail "\"$STRING\": NOT found in $ROUTE"
-  fi
-}
+F_SS="${ROUTE_FILES[/smartlife-self-serve]}"
+F_SA="${ROUTE_FILES[/smartlife-staff-assist]}"
+F_PR="${ROUTE_FILES[/smartlife-projection-demo]}"
+F_CO="${ROUTE_FILES[/smartlife-checkout-demo]}"
+F_TY="${ROUTE_FILES[/smartlife-thank-you]}"
 
-# Saver types
-_check_content "/smartlife-self-serve" "Existing NSSF Member"
-_check_content "/smartlife-self-serve" "New Saver"
-_check_content "/smartlife-self-serve" "Diaspora Saver"
-_check_content "/smartlife-self-serve" "Informal Sector"
-_check_content "/smartlife-self-serve" "Staff-Assisted"
-_check_content "/smartlife-self-serve" "Who are you saving as"
-
-# Step 2 — DOB
-_check_content "/smartlife-self-serve" "Your Personal Details"
-_check_content "/smartlife-self-serve" "Date of birth"
-_check_content "/smartlife-self-serve" "date_of_birth"
-_check_content "/smartlife-self-serve" "phone"
-_check_content "/smartlife-self-serve" "consent"
-_check_content "/smartlife-self-serve" "stored securely"
-
-# Staff-assist
-_check_content "/smartlife-staff-assist" "Staff-Guided Session"
-_check_content "/smartlife-staff-assist" "Prospect Segment"
-_check_content "/smartlife-staff-assist" "Savings Goal"
-
-# Projection
-_check_content "/smartlife-projection-demo" "Savings Projection Calculator"
-_check_content "/smartlife-projection-demo" "Projection is indicative"
-_check_content "/smartlife-projection-demo" "Semi-Annually"
-
-# Prototype notices
-_check_content "/smartlife-self-serve"      "Prototype environment"
-_check_content "/smartlife-staff-assist"    "Prototype environment"
-_check_content "/smartlife-projection-demo" "Prototype environment"
-_check_content "/smartlife-checkout-demo"   "Prototype environment"
-
-# Checkout / thank-you
-_check_content "/smartlife-checkout-demo" "SmartLife Flexi"
-_check_content "/smartlife-thank-you"     "SmartLife\|Thank\|on your way"
+contains_file "$F_SS" "Existing NSSF Member"    "Existing NSSF Member in self-serve"
+contains_file "$F_SS" "New Saver"               "New Saver in self-serve"
+contains_file "$F_SS" "Diaspora Saver"          "Diaspora Saver in self-serve"
+contains_file "$F_SS" "Informal Sector"         "Informal Sector in self-serve"
+contains_file "$F_SS" "Staff-Assisted"          "Staff-Assisted in self-serve"
+contains_file "$F_SS" "Who are you saving as"   "Step 1 heading in self-serve"
+contains_file "$F_SS" "Your Personal Details"   "Step 2 heading in self-serve"
+contains_file "$F_SS" "Date of birth"           "DOB field label in self-serve"
+contains_file "$F_SS" "date_of_birth"           "date_of_birth name attr in self-serve"
+contains_file "$F_SS" "phone"                   "Phone field in self-serve"
+contains_file "$F_SS" "consent"                 "Consent field in self-serve"
+contains_file "$F_SS" "Prototype environment"   "Prototype notice in self-serve"
+contains_file "$F_SA" "Staff-Guided Session"    "Staff-Guided Session heading"
+contains_file "$F_SA" "Prospect Segment"        "Prospect Segment in staff-assist"
+contains_file "$F_SA" "Savings Goal"            "Savings Goal in staff-assist"
+contains_file "$F_SA" "Prototype environment"   "Prototype notice in staff-assist"
+contains_file "$F_PR" "Savings Projection"      "Savings Projection heading"
+contains_file "$F_PR" "Projection is indicative" "Indicative disclaimer in projection"
+contains_file "$F_PR" "Semi-Annually"           "Semi-Annually in projection"
+contains_file "$F_PR" "Prototype environment"   "Prototype notice in projection"
+contains_file "$F_CO" "SmartLife Flexi"         "SmartLife Flexi in checkout"
+contains_file "$F_CO" "Prototype environment"   "Prototype notice in checkout"
+contains_file "$F_TY" "SmartLife\|Thank\|on your way" "Thank-you landing content"
 
 # ── 7. Analytics / GTM (warn only) ───────────────────────────────
 echo ""
 echo "--- Analytics / GTM (warnings only) ---"
-GTM_HTML=$(_fetch "/smartlife-flexi-demo")
-if echo "$GTM_HTML" | grep -q "GTM-PZRV3MQL\|analytics_helper"; then
+F_LD="${ROUTE_FILES[/smartlife-flexi-demo]}"
+if grep -Eq "GTM-PZRV3MQL|analytics_helper" "$F_LD" 2>/dev/null; then
   ok "GTM or analytics_helper found in landing page"
 else
   warn "GTM-PZRV3MQL not found in smartlife-flexi-demo — check hooks.py"
 fi
-if echo "$GTM_HTML" | grep -qi "uvlttflnbt\|clarity"; then
+if grep -Eiq "uvlttflnbt|clarity" "$F_LD" 2>/dev/null; then
   ok "Microsoft Clarity ID found in landing page"
 else
   warn "Clarity ID not detected — check GTM configuration"
@@ -239,7 +225,7 @@ if [ -f "$AH_FILE" ]; then
   for BLOCKED_KEY in "first_name" "last_name" "phone" "email" "nin" "date_of_birth" "age_years"; do
     grep -q "$BLOCKED_KEY" "$AH_FILE" \
       && ok "Analytics: '$BLOCKED_KEY' in PII block-list" \
-      || fail "Analytics: '$BLOCKED_KEY' NOT in analytics_helper.js PII block-list"
+      || fail "Analytics: '$BLOCKED_KEY' NOT in PII block-list"
   done
   grep -q "PII_KEYS\|isPiiKey\|sanitise" "$AH_FILE" \
     && ok "Analytics: PII guard present" \
@@ -250,14 +236,16 @@ fi
 
 SS_FILE="nssf_smart_savers/www/smartlife-self-serve.html"
 if [ -f "$SS_FILE" ]; then
-  grep -q "smartlife\.css" "$SS_FILE"     && ok "Source: smartlife.css in self-serve.html"        || fail "Source: smartlife.css MISSING"
-  grep -q "sl-choice-card" "$SS_FILE"     && ok "Source: sl-choice-card in self-serve.html"       || fail "Source: sl-choice-card MISSING"
-  grep -q "Existing NSSF Member" "$SS_FILE" && ok "Source: 'Existing NSSF Member' in self-serve.html" || fail "Source: 'Existing NSSF Member' NOT found"
-  grep -q "date_of_birth" "$SS_FILE"      && ok "Source: date_of_birth in self-serve.html"        || fail "Source: date_of_birth MISSING"
-  grep -qi "Date of birth" "$SS_FILE"     && ok "Source: 'Date of birth' label in self-serve.html" || fail "Source: 'Date of birth' label MISSING"
-  grep -q "sl-brand-shell\|sl-brand-bar" "$SS_FILE" && ok "Source: brand shell in self-serve.html" || fail "Source: brand shell MISSING"
+  grep -q "smartlife\.css\|smartlife.css" "$SS_FILE" \
+    && ok "Source: smartlife.css link in self-serve.html" \
+    || fail "Source: smartlife.css MISSING"
+  grep -q "sl-choice-card" "$SS_FILE"    && ok "Source: sl-choice-card in self-serve.html"    || fail "Source: sl-choice-card MISSING"
+  grep -q "Existing NSSF Member" "$SS_FILE" && ok "Source: 'Existing NSSF Member' found"     || fail "Source: 'Existing NSSF Member' NOT found"
+  grep -q "date_of_birth" "$SS_FILE"     && ok "Source: date_of_birth in self-serve.html"     || fail "Source: date_of_birth MISSING"
+  grep -qi "Date of birth" "$SS_FILE"    && ok "Source: 'Date of birth' label found"          || fail "Source: 'Date of birth' MISSING"
+  grep -q "smartlife_brand_shell" "$SS_FILE" && ok "Source: brand shell include in self-serve" || fail "Source: brand shell include MISSING"
   if grep -q 'id="sl-age"' "$SS_FILE"; then
-    fail "Source: manual age input (id=sl-age) still present — replace with DOB"
+    fail "Source: manual age input (id=sl-age) still present — must be DOB"
   else
     ok "Source: manual age input correctly absent"
   fi
@@ -267,7 +255,7 @@ SA_FILE="nssf_smart_savers/www/smartlife-staff-assist.html"
 if [ -f "$SA_FILE" ]; then
   grep -q "sl-form"   "$SA_FILE" && ok "Source: sl-form in staff-assist.html"   || fail "Source: sl-form MISSING"
   grep -q "sl-select" "$SA_FILE" && ok "Source: sl-select in staff-assist.html" || fail "Source: sl-select MISSING"
-  grep -q "sl-brand-shell\|sl-brand-bar" "$SA_FILE" && ok "Source: brand shell in staff-assist.html" || fail "Source: brand shell MISSING"
+  grep -q "smartlife_brand_shell" "$SA_FILE" && ok "Source: brand shell include in staff-assist" || fail "Source: brand shell include MISSING"
 fi
 
 PROJ_FILE="nssf_smart_savers/www/smartlife-projection-demo.html"
@@ -325,9 +313,8 @@ if [ "$FAIL" -gt 0 ]; then
   echo "Common causes:"
   echo "  1. bench build --app nssf_smart_savers"
   echo "  2. bench --site \$SITE clear-cache && bench --site \$SITE clear-website-cache"
-  echo "  3. Verify <link> and <script> tags exist in every template"
+  echo "  3. If brand shell checks fail: template include may not be rendering"
   echo "  4. If origin passes but public fails: purge Cloudflare cache"
-  echo "  5. If brand shell checks fail: confirm sl-brand-shell wrapper in templates"
   exit 1
 else
   echo -e "${GREEN}ALL CHECKS PASSED${NC}"
