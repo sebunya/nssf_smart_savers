@@ -677,6 +677,277 @@
   .sl-choice-grid { grid-template-columns: 1fr; }
 }
 
+/* ─── Frappe chrome suppression (SmartLife demo routes only) ─── */
+/*
+ * Adding 'sl-demo-route' to <html> via an inline script in each SmartLife
+ * template lets us safely hide the Frappe navbar/footer without touching
+ * any global Frappe CSS.
+ */
+html.sl-demo-route .navbar,
+html.sl-demo-route header.navbar,
+html.sl-demo-route nav.navbar,
+html.sl-demo-route [class*="navbar"]:not(.sl-brand-bar):not(.sl-brand-bar *),
+html.sl-demo-route .web-footer,
+html.sl-demo-route footer.web-footer,
+html.sl-demo-route .footer-section {
+  display: none !important;
+}
+html.sl-demo-route body,
+html.sl-demo-route .page-content-wrapper,
+html.sl-demo-route .container.page-content,
+html.sl-demo-route main.page-content {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* ─── Brand shell ─────────────────────────────────────────────── */
+.sl-brand-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--nssf-offwhite);
+}
+.sl-brand-bar {
+  background: var(--nssf-navy);
+  color: var(--nssf-white);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 3px solid var(--nssf-green);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.sl-brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sl-brand-mark {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--nssf-sky);
+  padding: 3px 8px;
+  border: 1px solid rgba(0,174,239,0.45);
+  border-radius: 3px;
+  line-height: 1.5;
+}
+.sl-brand-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--nssf-white);
+  letter-spacing: -0.01em;
+}
+.sl-brand-tagline {
+  font-size: 12px;
+  color: rgba(255,255,255,0.62);
+  font-weight: 400;
+  display: none;
+}
+@media (min-width: 640px) { .sl-brand-tagline { display: inline; } }
+.sl-brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 20px;
+  background: rgba(0,168,89,0.18);
+  color: var(--nssf-sky);
+  border: 1px solid rgba(0,174,239,0.35);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Choice icon — circle badge ─────────────────────────────── */
+.sl-choice-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50%;
+  background: var(--nssf-offwhite);
+  border: 1.5px solid var(--sl-grey-200);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  flex-shrink: 0;
+  margin-top: 0 !important;
+  transition: background var(--sl-transition), border-color var(--sl-transition);
+}
+.sl-choice-card.sl-selected .sl-choice-icon,
+.sl-choice-card:has(.sl-choice-input:checked) .sl-choice-icon {
+  background: var(--nssf-green-pale);
+  border-color: var(--nssf-green);
+}
+.sl-choice-card:hover .sl-choice-icon {
+  border-color: var(--nssf-sky);
+}
+
+/* Tighten card padding for better scan density */
+.sl-choice-card { padding: 18px 20px; gap: 16px; }
+.sl-choice-title { font-size: 15px; }
+.sl-choice-desc  { font-size: 13px; }
+
+/* Goal card icon badge */
+.sl-goal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--nssf-offwhite);
+  border: 1.5px solid var(--sl-grey-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin: 0 auto;
+  transition: background var(--sl-transition), border-color var(--sl-transition);
+}
+.sl-goal-card.sl-selected .sl-goal-icon,
+.sl-goal-card:has(.sl-choice-input:checked) .sl-goal-icon {
+  background: var(--nssf-green-pale);
+  border-color: var(--nssf-green);
+}
+.sl-goal-card:hover .sl-goal-icon { border-color: var(--nssf-sky); }
+
+/* ─── Demo notice — tighter institutional style ───────────────── */
+.sl-demo-notice {
+  background: #fef9ec;
+  border-left: 4px solid var(--nssf-navy);
+  color: var(--nssf-navy);
+  padding: 9px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin-bottom: 0;
+}
+
+/* ─── Landing page hub card CTA arrow ────────────────────────── */
+.sl-hub-card .sl-btn-primary { margin-top: auto; }
+
+/* ─── Thank-you / success page ───────────────────────────────── */
+.smartlife-thankyou-wrapper {
+  max-width: 640px;
+  margin: 40px auto;
+  padding: 0 20px 60px;
+  text-align: center;
+}
+.sl-success-circle {
+  font-size: 64px;
+  margin: 0 auto 16px;
+}
+.sl-thankyou-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--nssf-navy);
+  margin-bottom: 10px;
+}
+.sl-thankyou-subtitle { font-size: 16px; color: var(--nssf-slate); margin-bottom: 20px; }
+.sl-demo-badge {
+  display: inline-block;
+  background: var(--nssf-sky-pale);
+  border: 1px solid rgba(0,174,239,0.3);
+  color: var(--nssf-navy);
+  font-size: 11px; font-weight: 700;
+  padding: 5px 14px; border-radius: 20px;
+  margin-bottom: 28px; letter-spacing: 0.04em;
+}
+.sl-plan-summary-card {
+  background: var(--nssf-white);
+  border: 1px solid var(--sl-grey-200);
+  border-top: 4px solid var(--nssf-navy);
+  border-radius: var(--sl-radius);
+  padding: 24px 28px;
+  text-align: left; margin-bottom: 24px;
+  box-shadow: var(--sl-shadow);
+}
+.sl-plan-summary-card h2 {
+  font-size: 16px; font-weight: 800;
+  color: var(--nssf-navy); margin: 0 0 16px;
+}
+.sl-status-active { color: var(--nssf-green); font-weight: 700; }
+.sl-next-steps {
+  background: var(--nssf-offwhite);
+  border: 1px solid var(--sl-grey-200);
+  border-radius: var(--sl-radius);
+  padding: 20px 24px;
+  text-align: left; margin-bottom: 28px;
+}
+.sl-next-steps h3 { font-size: 14px; font-weight: 800; color: var(--nssf-navy); margin: 0 0 12px; }
+.sl-next-steps ol { margin: 0; padding-left: 20px; font-size: 14px; color: var(--nssf-slate); line-height: 1.8; }
+.sl-thankyou-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+/* ─── Support page ───────────────────────────────────────────── */
+.smartlife-support-wrapper { max-width: 700px; margin: 0 auto; padding: 32px 20px 60px; }
+.smartlife-support-wrapper h1 { font-size: 24px; font-weight: 800; color: var(--nssf-navy); margin: 0 0 6px; }
+
+/* ─── Projection standalone page ─────────────────────────────── */
+.smartlife-projection-wrapper { max-width: 820px; margin: 0 auto; padding: 32px 20px 60px; }
+.smartlife-projection-wrapper h1 { font-size: 24px; font-weight: 800; color: var(--nssf-navy); margin: 0 0 6px; }
+
+/* ─── Landing page (smartlife-flexi-demo) ────────────────────── */
+.smartlife-hero {
+  background: linear-gradient(135deg, var(--nssf-navy) 0%, var(--nssf-navy-2) 60%, var(--nssf-green) 100%);
+  padding: 64px 24px 80px;
+  text-align: center;
+  color: var(--nssf-white);
+  position: relative;
+  overflow: hidden;
+}
+.smartlife-hero::after {
+  content: '';
+  position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 48px; background: var(--nssf-offwhite);
+  clip-path: ellipse(55% 100% at 50% 100%);
+  pointer-events: none;
+}
+.smartlife-hero-content { position: relative; z-index: 1; max-width: 620px; margin: 0 auto; }
+.smartlife-hero-title { font-size: clamp(28px, 6vw, 48px); font-weight: 900; margin: 0 0 12px; line-height: 1.1; }
+.smartlife-hero-subtitle { font-size: 20px; opacity: 0.9; margin-bottom: 10px; font-weight: 700; }
+.smartlife-hero-desc { font-size: 15px; opacity: 0.82; max-width: 520px; margin: 0 auto 32px; line-height: 1.65; }
+.smartlife-hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.smartlife-btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 14px 32px; font-size: 16px; font-weight: 700; font-family: inherit;
+  background: var(--nssf-green); color: var(--nssf-white);
+  border: 2px solid var(--nssf-green); border-radius: var(--sl-radius-sm);
+  text-decoration: none; cursor: pointer;
+  transition: background var(--sl-transition), border-color var(--sl-transition);
+}
+.smartlife-btn-primary:hover { background: var(--nssf-green-2); border-color: var(--nssf-green-2); }
+.smartlife-btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 14px 32px; font-size: 16px; font-weight: 700; font-family: inherit;
+  background: rgba(255,255,255,0.12); color: var(--nssf-white);
+  border: 2px solid rgba(255,255,255,0.5); border-radius: var(--sl-radius-sm);
+  text-decoration: none; cursor: pointer;
+  transition: background var(--sl-transition);
+}
+.smartlife-btn-secondary:hover { background: rgba(255,255,255,0.22); }
+.smartlife-hub-section { max-width: 860px; margin: 0 auto; padding: 40px 20px 60px; }
+.smartlife-hub-section h2 { font-size: 20px; font-weight: 800; color: var(--nssf-navy); margin: 0 0 20px; }
+
+/* ─── Staff-assist page wrapper ──────────────────────────────── */
+.sl-staff-assist-page { max-width: 760px; margin: 0 auto; padding: 32px 20px 60px; }
+
+/* ─── Checkout wrapper ───────────────────────────────────────── */
+.smartlife-checkout-wrapper { max-width: 640px; margin: 0 auto; padding: 32px 20px 60px; }
+.smartlife-checkout-wrapper h1 { font-size: 22px; font-weight: 800; color: var(--nssf-navy); margin: 0 0 6px; }
+.sl-checkout-demo-badge {
+  display: inline-block;
+  background: var(--nssf-sky-pale);
+  border: 1px solid rgba(0,174,239,0.3);
+  color: var(--nssf-navy);
+  font-size: 12px; font-weight: 700;
+  padding: 6px 14px; border-radius: 4px;
+  margin-bottom: 20px;
+}
+
 /* ─── Legacy aliases (backward compat) ───────────────────────── */
 .sl-result-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 24px 0; }
 .sl-result-featured { border-color: var(--nssf-green); background: var(--nssf-green-pale); }
