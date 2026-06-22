@@ -1,0 +1,215 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-dob-ui-20260622">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-dob-ui-20260622"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-dob-ui-20260622"></script>
+{% include "nssf_smart_savers/templates/includes/smartlife_brand_shell.html" %}
+<script>document.documentElement.classList.add('sl-demo-route')</script>
+
+<div class="sl-brand-shell">
+<header class="sl-brand-bar" aria-label="NSSF SmartLife Flexi" data-brand-title="NSSF SmartLife Flexi">
+  <div class="sl-brand-lockup">
+    <span class="sl-brand-mark">NSSF</span>
+    <span class="sl-brand-title">SmartLife Flexi</span>
+    <span class="sl-brand-tagline">Staff Queue</span>
+  </div>
+  <span class="sl-brand-badge">Prototype environment</span>
+</header>
+<div class="sl-demo-notice">
+  SmartLife Flexi &mdash; Staff demo queue. Prototype environment only. No real member data is shown.
+</div>
+
+<div class="sl-queue-wrapper">
+  <h1 class="sl-page-title">SmartLife Staff Queue</h1>
+  <p class="sl-page-subtitle">Lead Overview — Follow-up Priorities — Next Best Actions</p>
+
+  <!-- Lead Overview -->
+  <section class="sl-queue-section" id="sl-lead-overview">
+    <h2 class="sl-section-heading">Lead Overview</h2>
+    <div class="sl-metric-grid" id="sl-metric-grid">
+      <div class="sl-metric-card"><div class="sl-metric-value" id="m-total">—</div><div class="sl-metric-label">Total Leads</div></div>
+      <div class="sl-metric-card sl-metric-hot"><div class="sl-metric-value" id="m-hot">—</div><div class="sl-metric-label">Hot Leads</div></div>
+      <div class="sl-metric-card sl-metric-warm"><div class="sl-metric-value" id="m-warm">—</div><div class="sl-metric-label">Warm Leads</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="m-cold">—</div><div class="sl-metric-label">Cold Leads</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="m-payment-pending">—</div><div class="sl-metric-label">Payment Pending</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="m-staff-required">—</div><div class="sl-metric-label">Staff Follow-up Required</div></div>
+      <div class="sl-metric-card sl-metric-success"><div class="sl-metric-value" id="m-converted">—</div><div class="sl-metric-label">Converted</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="m-dormant">—</div><div class="sl-metric-label">Dormant</div></div>
+    </div>
+  </section>
+
+  <!-- Lead Temperature -->
+  <section class="sl-queue-section" id="sl-lead-temperature">
+    <h2 class="sl-section-heading">Lead Temperature</h2>
+    <div class="sl-temp-bar-wrap">
+      <div class="sl-temp-bar">
+        <div class="sl-temp-segment sl-temp-hot" id="bar-hot" style="width:0%"><span id="bar-hot-label">Hot 0</span></div>
+        <div class="sl-temp-segment sl-temp-warm" id="bar-warm" style="width:0%"><span id="bar-warm-label">Warm 0</span></div>
+        <div class="sl-temp-segment sl-temp-cold" id="bar-cold" style="width:0%"><span id="bar-cold-label">Cold 0</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Breakdowns -->
+  <section class="sl-queue-section">
+    <h2 class="sl-section-heading">Leads by Saver Type</h2>
+    <div id="sl-by-segment" class="sl-breakdown-list">—</div>
+  </section>
+
+  <section class="sl-queue-section">
+    <h2 class="sl-section-heading">Leads by Savings Goal</h2>
+    <div id="sl-by-goal" class="sl-breakdown-list">—</div>
+  </section>
+
+  <section class="sl-queue-section">
+    <h2 class="sl-section-heading">Leads by Preferred Contact Channel</h2>
+    <div id="sl-by-channel" class="sl-breakdown-list">—</div>
+  </section>
+
+  <!-- Follow-up Priorities -->
+  <section class="sl-queue-section" id="sl-followup-priorities">
+    <h2 class="sl-section-heading">Follow-up Priorities</h2>
+    <p class="sl-section-note">Leads requiring staff action, ranked by score. Phone and email are masked.</p>
+    <div id="sl-queue-table-wrap">
+      <table class="sl-queue-table" id="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Status</th>
+            <th>Temperature</th>
+            <th>Score</th>
+            <th>Segment</th>
+            <th>Goal</th>
+            <th>Next Best Action</th>
+            <th>Contact Channel</th>
+            <th>Phone</th>
+            <th>Assigned</th>
+          </tr>
+        </thead>
+        <tbody id="sl-queue-tbody">
+          <tr><td colspan="10" class="sl-queue-empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="sl-queue-empty-state" class="sl-empty-state" style="display:none">
+      <p>No leads currently require follow-up. Check back after more onboarding completions.</p>
+    </div>
+  </section>
+
+  <!-- Next Best Actions summary -->
+  <section class="sl-queue-section" id="sl-nba-section">
+    <h2 class="sl-section-heading">Next Best Actions</h2>
+    <div id="sl-nba-list" class="sl-breakdown-list">—</div>
+  </section>
+
+  <div class="sl-queue-footer">
+    <p class="sl-demo-disclaimer">Prototype environment — no real NSSF member data is shown or stored here. Contact details are masked for demo purposes.</p>
+  </div>
+</div><!-- /.sl-queue-wrapper -->
+
+<script>
+(function () {
+  var BASE_API = '/api/method/nssf_smart_savers.api.';
+
+  function fmt(v) { return (v === null || v === undefined) ? '—' : v; }
+
+  function tempBadge(t) {
+    var cls = t === 'Hot' ? 'sl-temp-badge-hot' : t === 'Warm' ? 'sl-temp-badge-warm' : 'sl-temp-badge-cold';
+    return '<span class="sl-temp-badge ' + cls + '">' + fmt(t) + '</span>';
+  }
+
+  function renderBreakdown(el, obj) {
+    if (!obj || !Object.keys(obj).length) { el.textContent = 'No data yet.'; return; }
+    var items = Object.entries(obj).sort(function(a,b){ return b[1]-a[1]; });
+    el.innerHTML = items.map(function(pair) {
+      return '<div class="sl-breakdown-row"><span class="sl-breakdown-key">' + fmt(pair[0]) + '</span><span class="sl-breakdown-val">' + pair[1] + '</span></div>';
+    }).join('');
+  }
+
+  function loadSummary() {
+    frappe.call({
+      method: BASE_API + 'get_lead_summary',
+      callback: function (r) {
+        if (!r.message || !r.message.success) return;
+        var d = r.message;
+        document.getElementById('m-total').textContent           = fmt(d.total);
+        document.getElementById('m-hot').textContent             = fmt((d.by_temp || {})['Hot'] || 0);
+        document.getElementById('m-warm').textContent            = fmt((d.by_temp || {})['Warm'] || 0);
+        document.getElementById('m-cold').textContent            = fmt((d.by_temp || {})['Cold'] || 0);
+        document.getElementById('m-payment-pending').textContent = fmt((d.by_status || {})['Payment Pending'] || 0);
+        document.getElementById('m-staff-required').textContent  = fmt((d.by_status || {})['Staff Follow-up Required'] || 0);
+        document.getElementById('m-converted').textContent       = fmt((d.by_status || {})['Converted'] || 0);
+        document.getElementById('m-dormant').textContent         = fmt((d.by_status || {})['Dormant'] || 0);
+
+        var total = d.total || 0;
+        var hot  = (d.by_temp || {})['Hot']  || 0;
+        var warm = (d.by_temp || {})['Warm'] || 0;
+        var cold = (d.by_temp || {})['Cold'] || 0;
+        if (total > 0) {
+          document.getElementById('bar-hot').style.width  = Math.round(hot/total*100)  + '%';
+          document.getElementById('bar-warm').style.width = Math.round(warm/total*100) + '%';
+          document.getElementById('bar-cold').style.width = Math.round(cold/total*100) + '%';
+          document.getElementById('bar-hot-label').textContent  = 'Hot '  + hot;
+          document.getElementById('bar-warm-label').textContent = 'Warm ' + warm;
+          document.getElementById('bar-cold-label').textContent = 'Cold ' + cold;
+        }
+        renderBreakdown(document.getElementById('sl-by-segment'), d.by_segment);
+        renderBreakdown(document.getElementById('sl-by-goal'),    d.by_goal);
+        renderBreakdown(document.getElementById('sl-by-channel'), d.by_channel);
+      }
+    });
+  }
+
+  function loadQueue() {
+    frappe.call({
+      method: BASE_API + 'get_staff_queue',
+      args: { limit: 50 },
+      callback: function (r) {
+        if (!r.message || !r.message.success) return;
+        var queue = r.message.queue || [];
+        var tbody = document.getElementById('sl-queue-tbody');
+        var nbaCounts = {};
+
+        if (!queue.length) {
+          tbody.innerHTML = '<tr><td colspan="10" class="sl-queue-empty">No leads currently require follow-up.</td></tr>';
+          document.getElementById('sl-queue-empty-state').style.display = '';
+          document.getElementById('sl-nba-list').textContent = 'No priority actions at this time.';
+          return;
+        }
+
+        tbody.innerHTML = queue.map(function(l) {
+          var nba = l.next_best_action || '—';
+          nbaCounts[nba] = (nbaCounts[nba] || 0) + 1;
+          return '<tr class="sl-queue-row">' +
+            '<td class="sl-queue-ref">' + l.name + '</td>' +
+            '<td>' + fmt(l.lead_status) + '</td>' +
+            '<td>' + tempBadge(l.lead_temperature) + '</td>' +
+            '<td class="sl-score">' + (l.lead_score || 0) + '</td>' +
+            '<td>' + fmt(l.segment) + '</td>' +
+            '<td>' + fmt(l.goal) + '</td>' +
+            '<td class="sl-nba">' + fmt(nba) + '</td>' +
+            '<td>' + fmt(l.preferred_contact_channel) + '</td>' +
+            '<td class="sl-masked">' + fmt(l.phone_masked) + '</td>' +
+            '<td>' + fmt(l.assigned_staff) + '</td>' +
+            '</tr>';
+        }).join('');
+
+        renderBreakdown(document.getElementById('sl-nba-list'), nbaCounts);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof frappe !== 'undefined' && frappe.call) {
+      loadSummary();
+      loadQueue();
+    }
+  });
+})();
+</script>
+</div><!-- /.sl-brand-shell -->
+{% endblock %}

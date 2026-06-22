@@ -958,3 +958,54 @@ html.sl-demo-route main.page-content {
 .sl-milestone-chip { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin: 4px; }
 .sl-milestone-achieved { background: var(--nssf-green-pale); color: var(--nssf-green-2); border: 1px solid rgba(0,168,89,.2); }
 .sl-milestone-pending  { background: var(--sl-grey-100); color: var(--nssf-slate); border: 1px solid var(--sl-grey-200); }
+
+/* ─── Phase 2: Staff Queue ────────────────────────────────────── */
+.sl-queue-wrapper { max-width: 1200px; margin: 0 auto; padding: 32px clamp(16px, 5vw, 48px) 64px; }
+.sl-queue-section { margin-bottom: 40px; }
+.sl-section-heading { font-size: 18px; font-weight: 800; color: var(--nssf-navy); border-bottom: 2px solid var(--nssf-green); padding-bottom: 8px; margin-bottom: 20px; }
+.sl-section-note { font-size: 13px; color: var(--nssf-slate); margin: -12px 0 14px; }
+
+/* Metric grid */
+.sl-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+.sl-metric-card { background: #fff; border: 1px solid var(--sl-grey-200); border-radius: 10px; padding: 20px 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,32,96,.06); }
+.sl-metric-value { font-size: 32px; font-weight: 900; color: var(--nssf-navy); line-height: 1; }
+.sl-metric-label { font-size: 12px; color: var(--nssf-slate); margin-top: 6px; font-weight: 600; }
+.sl-metric-hot .sl-metric-value   { color: #C0392B; }
+.sl-metric-warm .sl-metric-value  { color: #E67E22; }
+.sl-metric-success .sl-metric-value { color: var(--nssf-green); }
+
+/* Temperature bar */
+.sl-temp-bar-wrap { margin: 8px 0 16px; }
+.sl-temp-bar { display: flex; height: 36px; border-radius: 8px; overflow: hidden; background: var(--sl-grey-100); }
+.sl-temp-segment { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; min-width: 0; transition: width 0.4s; white-space: nowrap; overflow: hidden; }
+.sl-temp-hot  { background: #C0392B; }
+.sl-temp-warm { background: #E67E22; }
+.sl-temp-cold { background: #2980B9; }
+
+/* Temperature badges */
+.sl-temp-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+.sl-temp-badge-hot  { background: #FDECEA; color: #C0392B; }
+.sl-temp-badge-warm { background: #FEF3E2; color: #E67E22; }
+.sl-temp-badge-cold { background: #EBF5FB; color: #2980B9; }
+
+/* Breakdown list */
+.sl-breakdown-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.sl-breakdown-row { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--sl-grey-200); border-radius: 8px; padding: 8px 16px; min-width: 160px; }
+.sl-breakdown-key { font-size: 13px; color: var(--nssf-slate); flex: 1; text-transform: capitalize; }
+.sl-breakdown-val { font-size: 18px; font-weight: 900; color: var(--nssf-navy); }
+
+/* Queue table */
+.sl-queue-table-wrap, #sl-queue-table-wrap { width: 100%; overflow-x: auto; }
+.sl-queue-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sl-queue-table thead th { background: var(--nssf-navy); color: #fff; padding: 10px 12px; text-align: left; font-weight: 700; white-space: nowrap; }
+.sl-queue-table tbody tr:nth-child(even) { background: #F8F9FA; }
+.sl-queue-table tbody td { padding: 10px 12px; border-bottom: 1px solid var(--sl-grey-200); vertical-align: middle; }
+.sl-queue-row:hover td { background: rgba(0,32,96,.04); }
+.sl-queue-ref { font-family: monospace; font-size: 11px; color: var(--nssf-slate); }
+.sl-score { font-weight: 900; color: var(--nssf-navy); }
+.sl-nba { font-size: 12px; color: var(--nssf-green-2); font-weight: 600; }
+.sl-masked { font-family: monospace; color: var(--nssf-slate); font-size: 12px; }
+.sl-queue-empty { text-align: center; color: var(--nssf-slate); padding: 32px; }
+.sl-empty-state { text-align: center; padding: 48px; color: var(--nssf-slate); }
+.sl-queue-footer { border-top: 1px solid var(--sl-grey-200); padding-top: 24px; margin-top: 40px; }
+.sl-demo-disclaimer { font-size: 12px; color: var(--nssf-slate); text-align: center; }
