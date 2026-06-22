@@ -1,0 +1,191 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-dob-ui-20260622">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-dob-ui-20260622"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-dob-ui-20260622"></script>
+{% include "nssf_smart_savers/templates/includes/smartlife_brand_shell.html" %}
+<script>document.documentElement.classList.add('sl-demo-route')</script>
+
+<div class="sl-brand-shell">
+<header class="sl-brand-bar" aria-label="NSSF SmartLife Flexi" data-brand-title="NSSF SmartLife Flexi">
+  <div class="sl-brand-lockup">
+    <span class="sl-brand-mark">NSSF</span>
+    <span class="sl-brand-title">SmartLife Flexi</span>
+    <span class="sl-brand-tagline">Personalisation Team</span>
+  </div>
+  <span class="sl-brand-badge">Internal authorised view</span>
+</header>
+<div class="sl-demo-notice">
+  SmartLife Flexi &mdash; Internal Personalisation Team view. Full Lead Details. PII access enabled for authorised users. Staff sign-in required.
+</div>
+
+{% if is_guest %}
+<!-- Guest: show sign-in required message, no PII -->
+<div class="sl-queue-wrapper sl-auth-required-wrapper">
+  <div class="sl-auth-required-card">
+    <div class="sl-auth-icon">🔐</div>
+    <h1 class="sl-page-title">Staff sign-in required</h1>
+    <p class="sl-page-subtitle">Staff sign-in required to view full lead details.</p>
+    <p>This is the SmartLife Personalisation Team internal view. It contains full member PII for authorised onboarding support, follow-up, and service recovery.</p>
+    <p>Please sign in to your Frappe account and return to this page.</p>
+    <a href="/login?redirect-to=/smartlife-staff-queue-full" class="sl-btn-primary sl-auth-btn">Sign in to continue</a>
+    <p class="sl-auth-note">If you do not have a staff account, contact your system administrator.</p>
+  </div>
+</div>
+
+{% else %}
+<!-- Authenticated: show full Personalisation Team view -->
+<div class="sl-queue-wrapper">
+  <h1 class="sl-page-title">SmartLife Personalisation Team</h1>
+  <p class="sl-page-subtitle">Full Lead Details — Internal authorised view — PII access enabled for authorised users</p>
+  <div class="sl-access-notice sl-pii-notice">
+    <strong>Internal authorised view.</strong> PII access enabled for authorised users. Analytics still receives no raw PII. Do not share this URL externally.
+  </div>
+
+  <!-- Summary strip -->
+  <section class="sl-queue-section" id="sl-pii-overview">
+    <h2 class="sl-section-heading">Lead Overview</h2>
+    <div class="sl-metric-grid" id="sl-pii-metric-grid">
+      <div class="sl-metric-card"><div class="sl-metric-value" id="pm-total">—</div><div class="sl-metric-label">Total Leads</div></div>
+      <div class="sl-metric-card sl-metric-hot"><div class="sl-metric-value" id="pm-hot">—</div><div class="sl-metric-label">Hot</div></div>
+      <div class="sl-metric-card sl-metric-warm"><div class="sl-metric-value" id="pm-warm">—</div><div class="sl-metric-label">Warm</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="pm-cold">—</div><div class="sl-metric-label">Cold</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="pm-consented">—</div><div class="sl-metric-label">Consented</div></div>
+      <div class="sl-metric-card sl-metric-success"><div class="sl-metric-value" id="pm-converted">—</div><div class="sl-metric-label">Converted</div></div>
+    </div>
+  </section>
+
+  <!-- Follow-up Actions -->
+  <section class="sl-queue-section" id="sl-followup-actions">
+    <h2 class="sl-section-heading">Follow-up Actions</h2>
+    <p class="sl-section-note">Full lead details — unmasked. Sorted by lead score. Consent Status shown for each lead.</p>
+    <div id="sl-pii-table-wrap">
+      <table class="sl-queue-table sl-pii-table" id="sl-pii-table">
+        <thead>
+          <tr>
+            <th>Ref</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>DOB</th>
+            <th>Consent Status</th>
+            <th>Status</th>
+            <th>Temperature</th>
+            <th>Score</th>
+            <th>Next Best Action</th>
+            <th>Channel</th>
+            <th>Segment</th>
+            <th>Goal</th>
+            <th>Assigned</th>
+            <th>Next Follow-up</th>
+          </tr>
+        </thead>
+        <tbody id="sl-pii-tbody">
+          <tr><td colspan="15" class="sl-queue-empty">Loading full lead data…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="sl-pii-empty-state" class="sl-empty-state" style="display:none">
+      <p>No leads found. Leads will appear here after onboarding submissions.</p>
+    </div>
+  </section>
+
+  <div class="sl-queue-footer">
+    <p class="sl-demo-disclaimer">
+      Internal Personalisation Team view — authorised users only.
+      Analytics receives no raw PII. Production requires formal role-based access control.
+    </p>
+  </div>
+</div><!-- /.sl-queue-wrapper -->
+
+<script>
+(function () {
+  var BASE_API = '/api/method/nssf_smart_savers.api.';
+
+  function fmt(v) { return (v === null || v === undefined || v === '') ? '—' : v; }
+
+  function tempBadge(t) {
+    var cls = t === 'Hot' ? 'sl-temp-badge-hot' : t === 'Warm' ? 'sl-temp-badge-warm' : 'sl-temp-badge-cold';
+    return '<span class="sl-temp-badge ' + cls + '">' + fmt(t) + '</span>';
+  }
+
+  function consentBadge(c) {
+    return c
+      ? '<span class="sl-consent-yes">✓ Consented</span>'
+      : '<span class="sl-consent-no">✗ Not consented</span>';
+  }
+
+  function loadFullQueue() {
+    frappe.call({
+      method: BASE_API + 'get_staff_queue_full',
+      args: { limit: 200 },
+      callback: function (r) {
+        if (!r.message) { return; }
+        if (!r.message.success) {
+          document.getElementById('sl-pii-tbody').innerHTML =
+            '<tr><td colspan="15" class="sl-queue-empty">Access denied or sign-in required.</td></tr>';
+          return;
+        }
+        var leads = r.message.queue || [];
+        var total = leads.length;
+        var hot = 0, warm = 0, cold = 0, consented = 0, converted = 0;
+
+        var tbody = document.getElementById('sl-pii-tbody');
+
+        if (!leads.length) {
+          tbody.innerHTML = '<tr><td colspan="15" class="sl-queue-empty">No leads found.</td></tr>';
+          document.getElementById('sl-pii-empty-state').style.display = '';
+          return;
+        }
+
+        tbody.innerHTML = leads.map(function(l) {
+          if (l.lead_temperature === 'Hot')  hot++;
+          if (l.lead_temperature === 'Warm') warm++;
+          if (l.lead_temperature === 'Cold') cold++;
+          if (l.consent_to_contact) consented++;
+          if (l.lead_status === 'Converted') converted++;
+
+          var fullName = [l.first_name, l.last_name].filter(Boolean).join(' ') || '—';
+          return '<tr class="sl-queue-row">' +
+            '<td class="sl-queue-ref">' + fmt(l.name) + '</td>' +
+            '<td class="sl-pii-name">' + fullName + '</td>' +
+            '<td class="sl-pii-phone">' + fmt(l.primary_phone) + '</td>' +
+            '<td class="sl-pii-email">' + fmt(l.email_address) + '</td>' +
+            '<td class="sl-pii-dob">' + fmt(l.date_of_birth) + '</td>' +
+            '<td>' + consentBadge(l.consent_to_contact) + '</td>' +
+            '<td>' + fmt(l.lead_status) + '</td>' +
+            '<td>' + tempBadge(l.lead_temperature) + '</td>' +
+            '<td class="sl-score">' + (l.lead_score || 0) + '</td>' +
+            '<td class="sl-nba">' + fmt(l.next_best_action) + '</td>' +
+            '<td>' + fmt(l.preferred_contact_channel) + '</td>' +
+            '<td>' + fmt(l.segment) + '</td>' +
+            '<td>' + fmt(l.goal) + '</td>' +
+            '<td>' + fmt(l.assigned_staff) + '</td>' +
+            '<td>' + fmt(l.next_follow_up_on) + '</td>' +
+            '</tr>';
+        }).join('');
+
+        document.getElementById('pm-total').textContent     = total;
+        document.getElementById('pm-hot').textContent       = hot;
+        document.getElementById('pm-warm').textContent      = warm;
+        document.getElementById('pm-cold').textContent      = cold;
+        document.getElementById('pm-consented').textContent = consented;
+        document.getElementById('pm-converted').textContent = converted;
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof frappe !== 'undefined' && frappe.call) {
+      loadFullQueue();
+    }
+  });
+})();
+</script>
+{% endif %}
+</div><!-- /.sl-brand-shell -->
+{% endblock %}

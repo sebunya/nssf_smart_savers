@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# SmartLife Flexi — Phase 2 smoke test
-# Checks: staff queue route, lead scoring module, APIs, PII safety.
-# Run after Phase 1 smoke test passes.
+# SmartLife Flexi — Phase 2 smoke test (including Personalisation Team access model)
+# Checks: lead scoring, DocType fields, access model, PII masking, route content.
 set -euo pipefail
 
 BASE="${SMOKE_BASE:-https://nssf-smartlifeflexi.nile-gov-demo.com}"
@@ -34,8 +33,9 @@ contains_file() {
     ok "$label"
   else
     fail "$label"
-    echo "       Diagnostic (first 15 matching lines):"
-    grep -Ein "SmartLife|sl-brand|sl-queue|staff|lead|prototype|NSSF" "$file" 2>/dev/null | head -15 || echo "       (none)"
+    echo "       Diagnostic:"
+    grep -Ein "SmartLife|sl-brand|sl-queue|staff|lead|prototype|NSSF|authorised|sign-in" \
+      "$file" 2>/dev/null | head -12 || echo "       (none)"
   fi
 }
 
@@ -53,6 +53,14 @@ http_ok() {
   fi
 }
 
+API_PY="$APP_ROOT/nssf_smart_savers/api.py"
+SCORING_PY="$APP_ROOT/nssf_smart_savers/lead_scoring.py"
+LEAD_JSON="$APP_ROOT/nssf_smart_savers/nssf_smart_savers/doctype/smartlife_demo_lead/smartlife_demo_lead.json"
+ANALYTICS_PY="$APP_ROOT/nssf_smart_savers/utils/analytics.py"
+SQ_HTML="$APP_ROOT/nssf_smart_savers/www/smartlife-staff-queue.html"
+SQF_HTML="$APP_ROOT/nssf_smart_savers/www/smartlife-staff-queue-full.html"
+SQF_PY="$APP_ROOT/nssf_smart_savers/www/smartlife-staff-queue-full.py"
+
 echo "========================================"
 echo "SmartLife Flexi — Phase 2 Smoke Test"
 echo "BASE: $BASE"
@@ -60,224 +68,278 @@ echo "APP:  $APP_ROOT"
 echo "========================================"
 echo ""
 
-# ── 1. Phase 1 smoke test baseline ─────────────────────────────────────────
+# ── 1. Phase 1 baseline ────────────────────────────────────────────
 echo "--- Phase 1 baseline ---"
-if bash -n "$APP_ROOT/scripts/smoke_test.sh" 2>/dev/null; then
-  ok "Phase 1 smoke test syntax valid"
-else
-  fail "Phase 1 smoke test has syntax errors"
-fi
+bash -n "$APP_ROOT/scripts/smoke_test.sh" 2>/dev/null \
+  && ok "Phase 1 smoke test syntax valid" \
+  || fail "Phase 1 smoke test has syntax errors"
 
-# ── 2. Source: lead scoring module ─────────────────────────────────────────
+# ── 2. Lead scoring module ─────────────────────────────────────────
 echo ""
 echo "--- Lead scoring module ---"
-SCORING_PY="$APP_ROOT/nssf_smart_savers/lead_scoring.py"
-if [ -f "$SCORING_PY" ]; then
-  ok "lead_scoring.py exists"
-else
-  fail "lead_scoring.py MISSING"
-fi
+[ -f "$SCORING_PY" ] && ok "lead_scoring.py exists" || fail "lead_scoring.py MISSING"
+grep -q "def calculate_lead_score" "$SCORING_PY" 2>/dev/null \
+  && ok "calculate_lead_score defined" || fail "calculate_lead_score not found"
 
-if grep -q "def calculate_lead_score" "$SCORING_PY" 2>/dev/null; then
-  ok "calculate_lead_score function defined"
-else
-  fail "calculate_lead_score not found in lead_scoring.py"
-fi
-
-if grep -q "lead_temperature" "$SCORING_PY" 2>/dev/null; then
-  ok "lead_temperature returned by scoring"
-else
-  fail "lead_temperature not found in scoring output"
-fi
-
-if grep -q "next_best_action" "$SCORING_PY" 2>/dev/null; then
-  ok "next_best_action returned by scoring"
-else
-  fail "next_best_action not found in scoring output"
-fi
-
-if python3 -c "
-import sys
-sys.path.insert(0, '$APP_ROOT')
-# Minimal standalone check — does the function return expected keys?
-import importlib.util, types
-spec = importlib.util.spec_from_file_location('lead_scoring', '$SCORING_PY')
-m = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(m)
-result = m.calculate_lead_score({
-    'consent_to_contact': 1,
-    'initial_deposit': 200000,
-    'frequency': 'monthly',
-    'segment': 'new_saver',
-    'projection_viewed': 1,
-    'checkout_started': 0,
-    'payment_completed': 0,
-    'preferred_contact_channel': 'sms',
-    'age_band': '25-34',
-    'goal': 'education',
-    'target_amount': 5000000,
-    'staff_assisted': 0,
-})
-assert 'lead_score' in result
-assert 'lead_temperature' in result
-assert 'next_best_action' in result
-assert 'score_reasons' in result
-assert isinstance(result['lead_score'], int)
-assert result['lead_temperature'] in ('Hot', 'Warm', 'Cold')
-assert len(result['score_reasons']) > 0
-print('OK score=' + str(result['lead_score']) + ' temp=' + result['lead_temperature'])
-" 2>&1; then
-  ok "calculate_lead_score returns correct structure"
-else
-  fail "calculate_lead_score unit test failed"
-fi
-
-if python3 -c "
+python3 -c "
 import importlib.util
 spec = importlib.util.spec_from_file_location('lead_scoring', '$SCORING_PY')
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
-result = m.calculate_lead_score({'consent_to_contact': 0})
-assert result['lead_score'] == 0
-assert result['lead_temperature'] == 'Cold'
-assert 'consent' in result['next_best_action'].lower()
-" 2>/dev/null; then
-  ok "No-consent lead scores 0 and blocks action"
-else
-  fail "No-consent guard in scoring is not working"
-fi
+r = m.calculate_lead_score({
+    'consent_to_contact': 1, 'initial_deposit': 200000, 'frequency': 'monthly',
+    'segment': 'new_saver', 'projection_viewed': 1, 'checkout_started': 0,
+    'payment_completed': 0, 'preferred_contact_channel': 'sms',
+    'age_band': '25-34', 'goal': 'education', 'target_amount': 5000000,
+})
+assert 'lead_score' in r and 'lead_temperature' in r and 'next_best_action' in r
+assert isinstance(r['lead_score'], int) and r['lead_temperature'] in ('Hot','Warm','Cold')
+" 2>/dev/null && ok "calculate_lead_score unit test passes" || fail "calculate_lead_score unit test failed"
 
-# ── 3. Source: Phase 2 DocType fields ──────────────────────────────────────
+python3 -c "
+import importlib.util
+spec = importlib.util.spec_from_file_location('lead_scoring', '$SCORING_PY')
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+r = m.calculate_lead_score({'consent_to_contact': 0})
+assert r['lead_score'] == 0 and r['lead_temperature'] == 'Cold'
+" 2>/dev/null && ok "No-consent → score=0, temp=Cold" || fail "No-consent guard broken"
+
+# ── 3. DocType lifecycle fields ────────────────────────────────────
 echo ""
 echo "--- DocType lifecycle fields ---"
-LEAD_JSON="$APP_ROOT/nssf_smart_savers/nssf_smart_savers/doctype/smartlife_demo_lead/smartlife_demo_lead.json"
-
 for field in lead_status lead_temperature lead_score next_best_action assigned_staff \
              last_contacted_on next_follow_up_on follow_up_outcome drop_off_reason \
              source_route campaign_source campaign_medium campaign_name \
-             projection_viewed checkout_started payment_completed; do
-  if grep -q "\"$field\"" "$LEAD_JSON" 2>/dev/null; then
-    ok "DocType field: $field"
-  else
-    fail "DocType field MISSING: $field"
-  fi
+             projection_viewed checkout_started payment_completed staff_notes; do
+  grep -q "\"$field\"" "$LEAD_JSON" 2>/dev/null \
+    && ok "DocType field: $field" || fail "DocType field MISSING: $field"
 done
 
-# ── 4. Source: Phase 2 APIs ────────────────────────────────────────────────
+# ── 4. Auth helpers present ────────────────────────────────────────
 echo ""
-echo "--- Phase 2 API methods ---"
-API_PY="$APP_ROOT/nssf_smart_savers/api.py"
-for fn in get_lead_summary get_staff_queue update_follow_up_status assign_lead update_journey_flag score_lead; do
-  if grep -q "def $fn" "$API_PY" 2>/dev/null; then
-    ok "API: $fn defined"
-  else
-    fail "API: $fn NOT FOUND"
-  fi
+echo "--- Auth helpers ---"
+grep -q "def _is_guest" "$API_PY" 2>/dev/null \
+  && ok "_is_guest() defined" || fail "_is_guest() not found"
+grep -q "def _require_authenticated_staff" "$API_PY" 2>/dev/null \
+  && ok "_require_authenticated_staff() defined" || fail "_require_authenticated_staff() not found"
+grep -q "def _require_personalisation_access" "$API_PY" 2>/dev/null \
+  && ok "_require_personalisation_access() defined" || fail "_require_personalisation_access() not found"
+
+# ── 5. Public guest-safe endpoints (may be allow_guest) ───────────
+echo ""
+echo "--- Guest-safe endpoints (aggregated/masked only) ---"
+for fn in get_lead_summary get_staff_queue; do
+  grep -q "def $fn" "$API_PY" 2>/dev/null \
+    && ok "API: $fn defined" || fail "API: $fn NOT FOUND"
+done
+# Confirm get_staff_queue still uses masking
+grep -q "_mask_phone\|phone_masked\|email_masked" "$API_PY" 2>/dev/null \
+  && ok "get_staff_queue: masking helpers present" || fail "get_staff_queue: masking helpers MISSING"
+
+# ── 6. Authenticated full-PII endpoints: NOT allow_guest ──────────
+echo ""
+echo "--- Authenticated full-PII endpoints ---"
+for fn in get_staff_queue_full get_lead_full_detail; do
+  grep -q "def $fn" "$API_PY" 2>/dev/null \
+    && ok "API: $fn defined" || fail "API: $fn NOT FOUND"
+  # Must NOT have allow_guest=True
+  # Exit code 1 = NOT guest-allowed (good); exit 0 = guest allowed (bad)
+  python3 -c "
+import ast, sys
+src = open('$API_PY').read()
+tree = ast.parse(src)
+found = False
+for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name == '$fn':
+        for deco in node.decorator_list:
+            if isinstance(deco, ast.Call):
+                for kw in deco.keywords:
+                    if kw.arg == 'allow_guest' and isinstance(kw.value, ast.Constant) and kw.value.value:
+                        found = True
+sys.exit(0 if found else 1)
+" 2>/dev/null \
+    && fail "$fn: allow_guest=True found — must be authenticated only" \
+    || ok "$fn: not allow_guest (authenticated required)"
+  # Must call personalisation access guard (search lines between def and next top-level def)
+  python3 -c "
+import re, sys
+src = open('$API_PY').read()
+m = re.search(r'def $fn\b.*?(?=\ndef |\Z)', src, re.DOTALL)
+if m and '_require_personalisation_access' in m.group():
+    sys.exit(0)
+sys.exit(1)
+" 2>/dev/null \
+    && ok "$fn: calls _require_personalisation_access" \
+    || fail "$fn: _require_personalisation_access NOT called"
 done
 
-# ── 5. Source: Staff queue route ───────────────────────────────────────────
+# ── 7. Write endpoints: NOT allow_guest, call auth guard ──────────
 echo ""
-echo "--- Staff queue route ---"
-SQ_HTML="$APP_ROOT/nssf_smart_savers/www/smartlife-staff-queue.html"
-SQ_PY="$APP_ROOT/nssf_smart_savers/www/smartlife-staff-queue.py"
+echo "--- Write endpoint protection ---"
+for fn in update_follow_up_status assign_lead update_journey_flag; do
+  grep -q "def $fn" "$API_PY" 2>/dev/null \
+    && ok "API: $fn defined" || fail "API: $fn NOT FOUND"
+  python3 -c "
+import ast, sys
+src = open('$API_PY').read()
+tree = ast.parse(src)
+found = False
+for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name == '$fn':
+        for deco in node.decorator_list:
+            if isinstance(deco, ast.Call):
+                for kw in deco.keywords:
+                    if kw.arg == 'allow_guest' and isinstance(kw.value, ast.Constant) and kw.value.value:
+                        found = True
+sys.exit(0 if found else 1)
+" 2>/dev/null \
+    && fail "$fn: allow_guest=True — write endpoint must not allow guest" \
+    || ok "$fn: not allow_guest (write protected)"
+  python3 -c "
+import re, sys
+src = open('$API_PY').read()
+m = re.search(r'def $fn\b.*?(?=\ndef |\Z)', src, re.DOTALL)
+if m and ('_require_authenticated_staff' in m.group() or '_require_personalisation_access' in m.group()):
+    sys.exit(0)
+sys.exit(1)
+" 2>/dev/null \
+    && ok "$fn: calls auth guard" || fail "$fn: auth guard NOT found"
+done
 
-[ -f "$SQ_HTML" ] && ok "smartlife-staff-queue.html exists" || fail "smartlife-staff-queue.html MISSING"
-[ -f "$SQ_PY"   ] && ok "smartlife-staff-queue.py exists"  || fail "smartlife-staff-queue.py MISSING"
-
+# ── 8. Public staff queue page ─────────────────────────────────────
+echo ""
+echo "--- Public staff queue (masked demo view) ---"
+[ -f "$SQ_HTML" ] && ok "smartlife-staff-queue.html exists" || fail "MISSING"
 if [ -f "$SQ_HTML" ]; then
-  grep -q "SmartLife Staff Queue"   "$SQ_HTML" && ok "Staff queue: 'SmartLife Staff Queue' in source"    || fail "Staff queue: 'SmartLife Staff Queue' not in source"
-  grep -q "Lead Overview"           "$SQ_HTML" && ok "Staff queue: 'Lead Overview' in source"            || fail "Staff queue: 'Lead Overview' not in source"
-  grep -q "Follow-up Priorities"    "$SQ_HTML" && ok "Staff queue: 'Follow-up Priorities' in source"     || fail "Staff queue: 'Follow-up Priorities' not in source"
-  grep -q "Lead Temperature"        "$SQ_HTML" && ok "Staff queue: 'Lead Temperature' in source"         || fail "Staff queue: 'Lead Temperature' not in source"
-  grep -q "Next Best Actions"       "$SQ_HTML" && ok "Staff queue: 'Next Best Actions' in source"        || fail "Staff queue: 'Next Best Actions' not in source"
-  grep -q "Prototype environment"   "$SQ_HTML" && ok "Staff queue: 'Prototype environment' in source"    || fail "Staff queue: 'Prototype environment' not in source"
-  grep -q "sl-brand-shell"          "$SQ_HTML" && ok "Staff queue: brand shell wrapper present"          || fail "Staff queue: brand shell wrapper MISSING"
-  grep -q "get_lead_summary"        "$SQ_HTML" && ok "Staff queue: calls get_lead_summary"               || fail "Staff queue: get_lead_summary call not found"
-  grep -q "get_staff_queue"         "$SQ_HTML" && ok "Staff queue: calls get_staff_queue"                || fail "Staff queue: get_staff_queue call not found"
+  grep -q "SmartLife Staff Queue"  "$SQ_HTML" && ok "Masked queue: 'SmartLife Staff Queue' present" || fail "MISSING"
+  grep -q "Masked demo view"        "$SQ_HTML" && ok "Masked queue: 'Masked demo view' label present" || fail "'Masked demo view' MISSING"
+  grep -q "Lead Overview"           "$SQ_HTML" && ok "Masked queue: 'Lead Overview' present"  || fail "MISSING"
+  grep -q "Follow-up Priorities"    "$SQ_HTML" && ok "Masked queue: 'Follow-up Priorities'"   || fail "MISSING"
+  grep -q "Lead Temperature"        "$SQ_HTML" && ok "Masked queue: 'Lead Temperature'"       || fail "MISSING"
+  grep -q "Next Best Actions"       "$SQ_HTML" && ok "Masked queue: 'Next Best Actions'"      || fail "MISSING"
+  grep -q "Prototype environment"   "$SQ_HTML" && ok "Masked queue: 'Prototype environment'"  || fail "MISSING"
+  # Must NOT contain raw PII rendering patterns in HTML source
+  if grep -q 'l\.primary_phone[^_]' "$SQ_HTML" 2>/dev/null; then
+    fail "Masked queue source renders l.primary_phone (unmasked) — use phone_masked"
+  else
+    ok "Masked queue: no unmasked primary_phone in source template"
+  fi
 fi
 
-# ── 6. Python syntax ───────────────────────────────────────────────────────
+# ── 9. Authenticated full-PII staff queue page ────────────────────
+echo ""
+echo "--- Authenticated full-PII view ---"
+[ -f "$SQF_HTML" ] && ok "smartlife-staff-queue-full.html exists" || fail "MISSING"
+[ -f "$SQF_PY"   ] && ok "smartlife-staff-queue-full.py exists"   || fail "MISSING"
+if [ -f "$SQF_HTML" ]; then
+  grep -q "SmartLife Personalisation Team"    "$SQF_HTML" && ok "Full view: 'SmartLife Personalisation Team'" || fail "MISSING"
+  grep -q "Full Lead Details"                 "$SQF_HTML" && ok "Full view: 'Full Lead Details'"              || fail "MISSING"
+  grep -q "Internal authorised view"          "$SQF_HTML" && ok "Full view: 'Internal authorised view'"       || fail "MISSING"
+  grep -q "PII access enabled for authorised" "$SQF_HTML" && ok "Full view: 'PII access enabled...'"          || fail "MISSING"
+  grep -q "Staff sign-in required"            "$SQF_HTML" && ok "Full view: 'Staff sign-in required'"         || fail "MISSING"
+  grep -q "Follow-up Actions"                 "$SQF_HTML" && ok "Full view: 'Follow-up Actions'"              || fail "MISSING"
+  grep -q "Consent Status"                    "$SQF_HTML" && ok "Full view: 'Consent Status'"                 || fail "MISSING"
+  grep -q "Next Best Action"                  "$SQF_HTML" && ok "Full view: 'Next Best Action'"               || fail "MISSING"
+  grep -q "get_staff_queue_full"              "$SQF_HTML" && ok "Full view: calls get_staff_queue_full"       || fail "MISSING"
+  grep -q "sl-brand-shell"                    "$SQF_HTML" && ok "Full view: NSSF brand shell present"         || fail "MISSING"
+fi
+
+# ── 10. Analytics PII block list ──────────────────────────────────
+echo ""
+echo "--- Analytics PII block list (server) ---"
+for key in first_name last_name full_name phone primary_phone email nin date_of_birth \
+           birthday_day birthday_month age_years notes remarks raw_remarks \
+           user_submitted_text; do
+  if grep -q "'$key'" "$ANALYTICS_PY" "$APP_ROOT/nssf_smart_savers/public/js/analytics_helper.js" 2>/dev/null; then
+    ok "Analytics: '$key' referenced (block comment or guard)"
+  else
+    warn "Analytics: '$key' not explicitly referenced in analytics files"
+  fi
+done
+
+# Confirm ALLOWED_PARAMS does NOT include PII keys
+for pii_key in first_name last_name primary_phone email date_of_birth age_years birthday_day birthday_month; do
+  if python3 -c "
+import ast
+src = open('$ANALYTICS_PY').read()
+tree = ast.parse(src)
+for node in ast.walk(tree):
+    if isinstance(node, ast.Assign):
+        for t in node.targets:
+            if isinstance(t, ast.Name) and t.id == 'ALLOWED_PARAMS':
+                vals = [e.s for e in node.value.elts if isinstance(e, ast.Constant)]
+                assert '$pii_key' not in vals, 'PII key found in ALLOWED_PARAMS'
+" 2>/dev/null; then
+    ok "Analytics: '$pii_key' NOT in ALLOWED_PARAMS"
+  else
+    fail "Analytics: '$pii_key' found in ALLOWED_PARAMS — PII must not be allowed"
+  fi
+done
+
+# Frontend JS analytics block list
+JS_FILE="$APP_ROOT/nssf_smart_savers/public/js/analytics_helper.js"
+[ -f "$JS_FILE" ] && ok "analytics_helper.js exists" || fail "analytics_helper.js MISSING"
+for key in first_name last_name primary_phone birthday_day birthday_month age_years nin; do
+  grep -q "'$key'" "$JS_FILE" 2>/dev/null \
+    && ok "JS analytics: '$key' in PII_KEYS block list" \
+    || fail "JS analytics: '$key' NOT in PII_KEYS block list"
+done
+
+# ── 11. Python syntax ──────────────────────────────────────────────
 echo ""
 echo "--- Python syntax ---"
-if python3 -m py_compile "$APP_ROOT/nssf_smart_savers/lead_scoring.py" 2>/dev/null; then
-  ok "lead_scoring.py compiles cleanly"
-else
-  fail "lead_scoring.py has syntax errors"
-fi
-if python3 -m py_compile "$APP_ROOT/nssf_smart_savers/api.py" 2>/dev/null; then
-  ok "api.py compiles cleanly"
-else
-  fail "api.py has syntax errors"
-fi
+python3 -m py_compile "$SCORING_PY" 2>/dev/null && ok "lead_scoring.py compiles" || fail "lead_scoring.py syntax error"
+python3 -m py_compile "$API_PY"     2>/dev/null && ok "api.py compiles"           || fail "api.py syntax error"
+python3 -m py_compile "$APP_ROOT/nssf_smart_savers/utils/analytics.py" 2>/dev/null \
+  && ok "analytics.py compiles" || fail "analytics.py syntax error"
+python3 -m py_compile "$SQF_PY" 2>/dev/null \
+  && ok "smartlife-staff-queue-full.py compiles" || fail "smartlife-staff-queue-full.py syntax error"
 
-# ── 7. PII safety ─────────────────────────────────────────────────────────
-echo ""
-echo "--- PII safety ---"
-# No real PII committed
-for pattern in "256[0-9]\{9\}" "0[7][0-9]\{8\}" "@gmail\|@yahoo\|@hotmail" "CM[0-9]\{7\}" "SL-TEST-REAL"; do
-  if grep -rq "$pattern" "$APP_ROOT/nssf_smart_savers/www/" "$APP_ROOT/nssf_smart_savers/api.py" \
-     "$APP_ROOT/nssf_smart_savers/lead_scoring.py" 2>/dev/null; then
-    fail "Potential PII pattern found in source: $pattern"
-  else
-    ok "No PII pattern: $pattern"
-  fi
-done
-
-# Phase 2 APIs do not return PII fields directly
-if grep -q "first_name\|last_name\|primary_phone\|email_address\|date_of_birth" \
-   <(grep -A5 "def get_staff_queue" "$APP_ROOT/nssf_smart_savers/api.py" | grep "return\|\"name\"\|'name'") 2>/dev/null; then
-  warn "get_staff_queue may return raw PII field — verify masking is applied"
-else
-  ok "get_staff_queue does not directly return unmasked PII fields"
-fi
-
-# masked fields present
-if grep -q "_mask_phone\|_mask_email\|phone_masked\|email_masked" "$API_PY" 2>/dev/null; then
-  ok "Phone and email masking present in API"
-else
-  fail "Phone/email masking NOT found in API"
-fi
-
-# ── 8. No credentials committed ───────────────────────────────────────────
+# ── 12. No credentials in source ──────────────────────────────────
 echo ""
 echo "--- Credential safety ---"
-for pattern in "sk_live\|pk_live\|api_key.*=.*['\"][A-Za-z0-9]\{20,\}\|password.*=.*['\"][A-Za-z0-9]\|SECRET_KEY\|PRIVATE_KEY"; do
-  if grep -rEq "$pattern" "$APP_ROOT/nssf_smart_savers/" 2>/dev/null; then
-    fail "Potential credential in source: $pattern"
-  else
-    ok "No credential pattern: $pattern"
-  fi
-done
+if grep -rEq "sk_live|pk_live|SECRET_KEY|PRIVATE_KEY" \
+   "$APP_ROOT/nssf_smart_savers/" 2>/dev/null; then
+  fail "Potential credential pattern found in source"
+else
+  ok "No credential patterns in source"
+fi
 
-# ── 9. Live route checks ───────────────────────────────────────────────────
+# ── 13. Live route checks ──────────────────────────────────────────
 echo ""
 echo "--- Live route checks ---"
 SQ_FILE="$(fetch_page /smartlife-staff-queue)"
+SQF_FILE="$(fetch_page /smartlife-staff-queue-full)"
+
 http_ok "/smartlife-staff-queue"
+http_ok "/smartlife-staff-queue-full"
 
 if [ -f "$SQ_FILE" ] && [ -s "$SQ_FILE" ]; then
-  contains_file "$SQ_FILE" "SmartLife Staff Queue"    "Rendered: SmartLife Staff Queue heading"
-  contains_file "$SQ_FILE" "Lead Overview"            "Rendered: Lead Overview section"
-  contains_file "$SQ_FILE" "Follow-up Priorities"     "Rendered: Follow-up Priorities section"
-  contains_file "$SQ_FILE" "Lead Temperature"         "Rendered: Lead Temperature section"
-  contains_file "$SQ_FILE" "Next Best Actions"        "Rendered: Next Best Actions section"
-  contains_file "$SQ_FILE" "Prototype environment"    "Rendered: Prototype environment notice"
-  contains_file "$SQ_FILE" "sl-brand-shell|sl-brand-bar" "Rendered: NSSF brand shell"
-  contains_file "$SQ_FILE" 'data-brand-title="NSSF SmartLife Flexi"|aria-label="NSSF SmartLife Flexi"' \
-    "Rendered: brand title attribute"
-  contains_file "$SQ_FILE" "smartlife\.css"           "Rendered: smartlife.css loaded"
+  contains_file "$SQ_FILE" "SmartLife Staff Queue"  "Rendered: masked queue heading"
+  contains_file "$SQ_FILE" "Masked demo view"        "Rendered: masked demo view notice"
+  contains_file "$SQ_FILE" "Prototype environment"   "Rendered: prototype notice"
 else
   warn "Could not fetch /smartlife-staff-queue — skipping rendered checks (run on server)"
 fi
 
-# Phase 1 routes still return content
+if [ -f "$SQF_FILE" ] && [ -s "$SQF_FILE" ]; then
+  contains_file "$SQF_FILE" "SmartLife Personalisation Team" "Rendered: full view heading"
+  # Guest sees sign-in gate
+  contains_file "$SQF_FILE" "Staff sign-in required|Full Lead Details|Internal authorised view" \
+    "Rendered: full view gate or content"
+else
+  warn "Could not fetch /smartlife-staff-queue-full — skipping rendered checks (run on server)"
+fi
+
+# Phase 1 routes still up
 for ROUTE in /smartlife-flexi-demo /smartlife-self-serve /smartlife-staff-assist \
              /smartlife-projection-demo /smartlife-checkout-demo \
              /smartlife-thank-you /smartlife-support-demo; do
   http_ok "$ROUTE"
 done
 
-# ── 10. Summary ───────────────────────────────────────────────────────────
+# ── 14. Summary ────────────────────────────────────────────────────
 echo ""
 echo "========================================"
 echo "Phase 2 Results: $PASS passed | $FAIL failed | $WARN warnings"

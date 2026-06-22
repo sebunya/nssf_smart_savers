@@ -158,6 +158,134 @@ Phase 2 does not weaken Phase 1 privacy.
 
 ---
 
+---
+
+## Personalisation Team PII Access Model
+
+The SmartLife Personalisation Team is authorised under company policy to access customer/member PII for onboarding support, follow-up, service recovery, conversion tracking, dormancy prevention, birthday readiness and personalised engagement. The prototype therefore supports full PII access in authenticated staff views, while public demo views remain masked and analytics remains PII-safe.
+
+### Why the Personalisation Team needs full PII
+
+The Personalisation Team performs:
+- **Follow-up calls and messages** — requires full phone and email
+- **Consent calls** — requires consent status and preferred contact channel
+- **Birthday readiness** — requires birthday_month and birthday_day for timely outreach
+- **Service recovery** — requires full name, contact, and onboarding stage
+- **Reactivation / dormancy prevention** — requires lead temperature, last contacted date, and next follow-up date
+- **Conversion tracking** — requires checkout_started, payment_completed, goal, and contribution data
+- **Segmentation** — requires saver_type, age_band, goal, and industry
+
+None of these functions can be performed effectively with masked data.
+
+### Three-tier access model
+
+| Tier | Who | What they see |
+|---|---|---|
+| Tier 1: Public/Guest | Anyone (unauthenticated) | Aggregate counts, masked phone/email, distributions, lead temperature |
+| Tier 2: Authenticated Staff | Any signed-in Frappe user | Tier 1 + full PII in `/smartlife-staff-queue-full` and `get_staff_queue_full` / `get_lead_full_detail` |
+| Tier 3: Analytics | GTM / GA4 / Clarity | Safe dimensions only — never raw PII |
+
+### Guest/public view (`/smartlife-staff-queue`)
+
+Shows:
+- Total leads, temperature counts, status counts
+- Leads by saver type / goal / channel (aggregate)
+- Masked phone (`070****545`), masked email (`ro***@domain.com`)
+- Next best action labels
+- "Masked demo view" notice
+
+Does **not** show:
+- Full phone, email, name, DOB, birthday fields, exact age, notes
+
+### Authenticated Personalisation Team view (`/smartlife-staff-queue-full`)
+
+Shows all fields including:
+- `first_name`, `last_name`
+- `primary_phone`, `email_address`
+- `date_of_birth`, `age_years`, `birthday_month`, `birthday_day`
+- `preferred_contact_channel`, `consent_to_contact`
+- `lead_status`, `lead_temperature`, `lead_score`
+- `next_best_action`, `assigned_staff`
+- `last_contacted_on`, `next_follow_up_on`, `follow_up_outcome`
+- `source_route`, `campaign_source`, `campaign_medium`, `campaign_name`
+- `projection_viewed`, `checkout_started`, `payment_completed`
+- `staff_notes` (internal remarks)
+
+If user is not signed in, shows "Staff sign-in required" and a sign-in link. No PII visible to guest.
+
+### Guest-safe API endpoints (`allow_guest=True`)
+
+| Endpoint | What it returns |
+|---|---|
+| `get_lead_summary` | Counts grouped by status / temperature / segment / goal / channel — no individual records |
+| `get_staff_queue` | Masked queue (phone_masked, email_masked) — aggregate-safe |
+| `get_projection` | Projection calculation — no PII |
+| `get_personalised_plan_api` | Plan recommendation — no PII |
+| `submit_demo_lead` | Lead creation — returns session_id and age_band only |
+| `submit_personal_details` | Personal details capture — returns session_id and age_band only |
+| `log_analytics_event` | Analytics logging — PII is filtered before storage |
+| `log_dropoff` | Dropoff logging — no PII |
+| `request_support` | Support request — sanitised before storage |
+| `score_lead` | Score by session_id — returns bands only, no raw PII |
+
+### Authenticated full-PII API endpoints (require sign-in)
+
+| Endpoint | Auth required | What it returns |
+|---|---|---|
+| `get_staff_queue_full` | Any authenticated user | Full unmasked queue records |
+| `get_lead_full_detail` | Any authenticated user | All fields for a single lead including PII |
+
+### Write endpoints (require sign-in)
+
+| Endpoint | Auth required | Action |
+|---|---|---|
+| `update_follow_up_status` | Any authenticated user | Updates outcome and lead status |
+| `assign_lead` | Any authenticated user | Assigns staff to lead |
+| `update_journey_flag` | Any authenticated user | Sets projection_viewed / checkout_started / payment_completed |
+
+### Why analytics still blocks PII
+
+Even though staff can see full PII in the authenticated view, analytics pipelines (GTM, GA4, Clarity, frontend dataLayer) must never receive raw PII because:
+- Analytics events may be logged to third-party platforms outside NSSF's control
+- Event logs may be accessible to non-authorised parties
+- Regulatory and data protection obligations apply to analytics platforms
+
+The `analytics_helper.js` frontend block list and `sanitise_event_params()` server-side allowlist both enforce this independently.
+
+### Why logs should avoid raw PII
+
+Internal action logs (follow-up updates, assignment changes) record:
+- Lead document name (internal reference)
+- Action taken
+- Staff user identifier
+- Old and new status
+
+They do not record phone, email, DOB, name, or notes, so that log access does not require the same controls as PII access.
+
+### Current prototype guard
+
+```python
+def _require_personalisation_access():
+    if _is_guest():
+        frappe.throw("Personalisation team sign-in required.", frappe.PermissionError)
+    # Any authenticated Frappe user passes.
+    # Production TODO: enforce SmartLife Personalisation Team / NSSF Staff / System Manager role.
+```
+
+### Production requirement for formal role-based access
+
+Before going live, replace the prototype authenticated-session guard with a Frappe role check:
+
+```python
+allowed_roles = {"SmartLife Personalisation Team", "NSSF Staff", "System Manager"}
+if not allowed_roles.intersection(set(frappe.get_roles())):
+    frappe.throw("Access denied.", frappe.PermissionError)
+```
+
+Create the `SmartLife Personalisation Team` role in Frappe and assign it only to authorised NSSF staff. The `NSSF Staff` and `System Manager` roles should be narrowly assigned.
+
+---
+
 ## What is required before production launch
 
 1. Role-based authentication on all Phase 2 endpoints (remove `allow_guest=True`)

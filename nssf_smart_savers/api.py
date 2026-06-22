@@ -25,6 +25,34 @@ from nssf_smart_savers.lead_scoring import calculate_lead_score
 
 DEMO_NOTICE = "SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data."
 
+# ── Access control helpers ──────────────────────────────────────────────────
+
+def _is_guest():
+    return frappe.session.user == "Guest"
+
+
+def _require_authenticated_staff():
+    """Require any authenticated Frappe session. Blocks Guest."""
+    if _is_guest():
+        frappe.throw(
+            "Staff sign-in required for this action.",
+            frappe.PermissionError,
+        )
+
+
+def _require_personalisation_access():
+    """
+    Require authenticated session with Personalisation Team access.
+    Production TODO: replace with role check for
+    'SmartLife Personalisation Team', 'NSSF Staff', 'System Manager'.
+    """
+    if _is_guest():
+        frappe.throw(
+            "Personalisation team sign-in required to view full lead details.",
+            frappe.PermissionError,
+        )
+    # Prototype: any authenticated user may access. Production must enforce roles.
+
 
 def _check_pii(*values):
     """Raise error if any value looks like real PII."""
@@ -592,12 +620,13 @@ def get_staff_queue(limit=50):
     }
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def update_follow_up_status(lead_name, follow_up_outcome, new_status="Contacted"):
     """
     Update follow-up outcome and lead status.
-    Demo environment — staff use only.
+    Requires authenticated session. Staff use only. Demo environment.
     """
+    _require_authenticated_staff()
     _check_pii(lead_name, follow_up_outcome)
     lead_name      = sanitise_demo_text(lead_name, 50)
     outcome        = sanitise_demo_text(follow_up_outcome, 200)
@@ -617,12 +646,13 @@ def update_follow_up_status(lead_name, follow_up_outcome, new_status="Contacted"
     return {"success": True, "lead_name": lead_name, "new_status": new_status, "demo_notice": DEMO_NOTICE}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def assign_lead(lead_name, staff_name):
     """
     Assign a lead to a staff member name.
-    No PII is recorded beyond sanitised staff identifier. Demo environment.
+    Requires authenticated session. Demo environment.
     """
+    _require_authenticated_staff()
     _check_pii(lead_name)
     lead_name  = sanitise_demo_text(lead_name, 50)
     staff_name = sanitise_demo_text(staff_name, 100)
@@ -634,12 +664,13 @@ def assign_lead(lead_name, staff_name):
     return {"success": True, "lead_name": lead_name, "assigned_staff": staff_name, "demo_notice": DEMO_NOTICE}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def update_journey_flag(session_id, flag):
     """
     Update a journey progress flag (projection_viewed, checkout_started, payment_completed).
-    Called by frontend at the appropriate journey step. Demo environment.
+    Requires authenticated session. Demo environment.
     """
+    _require_authenticated_staff()
     _check_pii(session_id)
     allowed_flags = ("projection_viewed", "checkout_started", "payment_completed")
     if flag not in allowed_flags:
@@ -675,4 +706,113 @@ def update_journey_flag(session_id, flag):
         "lead_temperature": scoring["lead_temperature"],
         "next_best_action": scoring["next_best_action"],
         "demo_notice":      DEMO_NOTICE,
+    }
+
+
+# ── Personalisation Team: full PII endpoints ────────────────────────────────
+
+@frappe.whitelist()
+def get_staff_queue_full(limit=100):
+    """
+    Full Personalisation Team queue: returns unmasked PII fields.
+    Requires authenticated session. Not available to Guest.
+    Production TODO: enforce SmartLife Personalisation Team / NSSF Staff role.
+    """
+    _require_personalisation_access()
+    limit = min(_safe_int(limit, 100), 500)
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        fields=[
+            "name", "first_name", "last_name", "gender",
+            "primary_phone", "alt_phone", "email_address",
+            "date_of_birth", "age_years", "age_band",
+            "birthday_month", "birthday_day",
+            "preferred_contact_channel", "consent_to_contact",
+            "segment", "goal", "goal_label",
+            "frequency", "initial_deposit", "target_amount", "years",
+            "country", "source_of_income", "industry",
+            "lead_status", "lead_temperature", "lead_score",
+            "next_best_action", "assigned_staff",
+            "last_contacted_on", "next_follow_up_on",
+            "follow_up_outcome", "drop_off_reason",
+            "source_route", "campaign_source", "campaign_medium", "campaign_name",
+            "projection_viewed", "checkout_started", "payment_completed",
+            "staff_assisted", "onboarding_stage",
+            "created_session_id", "creation",
+        ],
+        order_by="lead_score desc, creation asc",
+        limit=limit,
+    )
+    return {
+        "success":     True,
+        "queue":       [dict(l) for l in leads],
+        "count":       len(leads),
+        "access_tier": "personalisation_team_full_pii",
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist()
+def get_lead_full_detail(lead_name):
+    """
+    Full detail for a single lead including all PII.
+    Requires authenticated session. Not available to Guest.
+    Production TODO: enforce SmartLife Personalisation Team / NSSF Staff role.
+    """
+    _require_personalisation_access()
+    lead_name = sanitise_demo_text(str(lead_name or ""), 50)
+    if not lead_name:
+        frappe.throw("lead_name is required.")
+    doc = frappe.get_doc("SmartLife Demo Lead", lead_name)
+    scoring = calculate_lead_score(doc.as_dict())
+    return {
+        "success":     True,
+        "access_tier": "personalisation_team_full_pii",
+        "lead": {
+            "name":                    doc.name,
+            "first_name":              doc.first_name,
+            "last_name":               doc.last_name,
+            "gender":                  doc.gender,
+            "primary_phone":           doc.primary_phone,
+            "alt_phone":               doc.alt_phone,
+            "email":                   doc.email_address,
+            "date_of_birth":           str(doc.date_of_birth) if doc.date_of_birth else None,
+            "age_years":               doc.age_years,
+            "age_band":                doc.age_band,
+            "birthday_month":          doc.birthday_month,
+            "birthday_day":            doc.birthday_day,
+            "preferred_contact_channel": doc.preferred_contact_channel,
+            "consent_to_contact":      bool(doc.consent_to_contact),
+            "segment":                 doc.segment,
+            "goal":                    doc.goal,
+            "goal_label":              doc.goal_label,
+            "frequency":               doc.frequency,
+            "initial_deposit":         doc.initial_deposit,
+            "target_amount":           doc.target_amount,
+            "years":                   doc.years,
+            "country":                 doc.country,
+            "source_of_income":        doc.source_of_income,
+            "industry":                doc.industry,
+            "lead_status":             doc.lead_status,
+            "lead_temperature":        doc.lead_temperature,
+            "lead_score":              scoring["lead_score"],
+            "next_best_action":        scoring["next_best_action"],
+            "score_reasons":           scoring["score_reasons"],
+            "assigned_staff":          doc.assigned_staff,
+            "last_contacted_on":       str(doc.last_contacted_on) if doc.last_contacted_on else None,
+            "next_follow_up_on":       str(doc.next_follow_up_on) if doc.next_follow_up_on else None,
+            "follow_up_outcome":       doc.follow_up_outcome,
+            "drop_off_reason":         doc.drop_off_reason,
+            "source_route":            doc.source_route,
+            "campaign_source":         doc.campaign_source,
+            "campaign_medium":         doc.campaign_medium,
+            "campaign_name":           doc.campaign_name,
+            "projection_viewed":       bool(doc.projection_viewed),
+            "checkout_started":        bool(doc.checkout_started),
+            "payment_completed":       bool(doc.payment_completed),
+            "staff_assisted":          bool(doc.staff_assisted),
+            "onboarding_stage":        doc.onboarding_stage,
+            "creation":                str(doc.creation),
+        },
+        "demo_notice": DEMO_NOTICE,
     }
