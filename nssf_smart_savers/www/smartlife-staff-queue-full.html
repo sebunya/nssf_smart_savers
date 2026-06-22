@@ -37,8 +37,20 @@
   </div>
 </div>
 
+{% elif not has_personalisation_role %}
+<!-- Signed in but no approved role -->
+<div class="sl-queue-wrapper sl-auth-required-wrapper">
+  <div class="sl-auth-required-card">
+    <div class="sl-auth-icon">🔐</div>
+    <h1 class="sl-page-title">Access restricted</h1>
+    <p class="sl-page-subtitle">You do not have permission to view full SmartLife lead PII.</p>
+    <p>This view requires the <strong>SmartLife Personalisation Team</strong>, <strong>NSSF Staff</strong>, or <strong>System Manager</strong> role. Contact your system administrator to request access.</p>
+    <p class="sl-auth-note">Your current account is signed in but does not have an approved role for this view.</p>
+  </div>
+</div>
+
 {% else %}
-<!-- Authenticated: show full Personalisation Team view -->
+<!-- Approved role: show full Personalisation Team view -->
 <div class="sl-queue-wrapper">
   <h1 class="sl-page-title">SmartLife Personalisation Team</h1>
   <p class="sl-page-subtitle">Full Lead Details — Internal authorised view — PII access enabled for authorised users</p>

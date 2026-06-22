@@ -27,8 +27,23 @@ DEMO_NOTICE = "SmartLife Flexi Demo. Prototype environment. Do not enter real NS
 
 # ── Access control helpers ──────────────────────────────────────────────────
 
+ALLOWED_PERSONALISATION_ROLES = {
+    "SmartLife Personalisation Team",
+    "NSSF Staff",
+    "System Manager",
+}
+
+
 def _is_guest():
     return frappe.session.user == "Guest"
+
+
+def _has_allowed_personalisation_role(user=None):
+    user = user or frappe.session.user
+    if not user or user == "Guest":
+        return False
+    user_roles = set(frappe.get_roles(user))
+    return bool(user_roles.intersection(ALLOWED_PERSONALISATION_ROLES))
 
 
 def _require_authenticated_staff():
@@ -42,16 +57,19 @@ def _require_authenticated_staff():
 
 def _require_personalisation_access():
     """
-    Require authenticated session with Personalisation Team access.
-    Production TODO: replace with role check for
-    'SmartLife Personalisation Team', 'NSSF Staff', 'System Manager'.
+    Require authenticated session with an approved Personalisation Team role.
+    Approved roles: SmartLife Personalisation Team, NSSF Staff, System Manager.
     """
     if _is_guest():
         frappe.throw(
             "Personalisation team sign-in required to view full lead details.",
             frappe.PermissionError,
         )
-    # Prototype: any authenticated user may access. Production must enforce roles.
+    if not _has_allowed_personalisation_role():
+        frappe.throw(
+            "You do not have permission to view full SmartLife lead PII.",
+            frappe.PermissionError,
+        )
 
 
 def _check_pii(*values):
@@ -715,8 +733,7 @@ def update_journey_flag(session_id, flag):
 def get_staff_queue_full(limit=100):
     """
     Full Personalisation Team queue: returns unmasked PII fields.
-    Requires authenticated session. Not available to Guest.
-    Production TODO: enforce SmartLife Personalisation Team / NSSF Staff role.
+    Requires SmartLife Personalisation Team, NSSF Staff, or System Manager role.
     """
     _require_personalisation_access()
     limit = min(_safe_int(limit, 100), 500)
@@ -756,8 +773,7 @@ def get_staff_queue_full(limit=100):
 def get_lead_full_detail(lead_name):
     """
     Full detail for a single lead including all PII.
-    Requires authenticated session. Not available to Guest.
-    Production TODO: enforce SmartLife Personalisation Team / NSSF Staff role.
+    Requires SmartLife Personalisation Team, NSSF Staff, or System Manager role.
     """
     _require_personalisation_access()
     lead_name = sanitise_demo_text(str(lead_name or ""), 50)
