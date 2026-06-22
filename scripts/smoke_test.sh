@@ -179,7 +179,7 @@ contains_file "$F_PR" "Semi-Annually"           "Semi-Annually in projection"
 contains_file "$F_PR" "Prototype environment"   "Prototype notice in projection"
 contains_file "$F_CO" "SmartLife Flexi"         "SmartLife Flexi in checkout"
 contains_file "$F_CO" "Prototype environment"   "Prototype notice in checkout"
-contains_file "$F_TY" "SmartLife\|Thank\|on your way" "Thank-you landing content"
+contains_file "$F_TY" "Smartlife Thank You|SmartLife Thank You|Thank you|Thank You|on your way|smartlife-thankyou-wrapper" "Thank-you landing content"
 
 # ── 7. Analytics / GTM (warn only) ───────────────────────────────
 echo ""

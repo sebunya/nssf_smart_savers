@@ -21,8 +21,55 @@ from nssf_smart_savers.utils.safe_input import (
     looks_like_email,
     sanitise_demo_text,
 )
+from nssf_smart_savers.lead_scoring import calculate_lead_score
 
 DEMO_NOTICE = "SmartLife Flexi Demo. Prototype environment. Do not enter real NSSF member data."
+
+# ── Access control helpers ──────────────────────────────────────────────────
+
+ALLOWED_PERSONALISATION_ROLES = {
+    "SmartLife Personalisation Team",
+    "NSSF Staff",
+    "System Manager",
+}
+
+
+def _is_guest():
+    return frappe.session.user == "Guest"
+
+
+def _has_allowed_personalisation_role(user=None):
+    user = user or frappe.session.user
+    if not user or user == "Guest":
+        return False
+    user_roles = set(frappe.get_roles(user))
+    return bool(user_roles.intersection(ALLOWED_PERSONALISATION_ROLES))
+
+
+def _require_authenticated_staff():
+    """Require any authenticated Frappe session. Blocks Guest."""
+    if _is_guest():
+        frappe.throw(
+            "Staff sign-in required for this action.",
+            frappe.PermissionError,
+        )
+
+
+def _require_personalisation_access():
+    """
+    Require authenticated session with an approved Personalisation Team role.
+    Approved roles: SmartLife Personalisation Team, NSSF Staff, System Manager.
+    """
+    if _is_guest():
+        frappe.throw(
+            "Personalisation team sign-in required to view full lead details.",
+            frappe.PermissionError,
+        )
+    if not _has_allowed_personalisation_role():
+        frappe.throw(
+            "You do not have permission to view full SmartLife lead PII.",
+            frappe.PermissionError,
+        )
 
 
 def _check_pii(*values):
@@ -137,6 +184,16 @@ def submit_demo_lead(
     })
 
     session_id = str(uuid.uuid4())[:16]
+    lead_dict = {
+        "segment": segment,
+        "goal": goal,
+        "frequency": frequency,
+        "initial_deposit": initial_deposit,
+        "target_amount": target_amount,
+        "staff_assisted": 1 if staff_assisted else 0,
+        "consent_to_contact": 0,
+    }
+    scoring = calculate_lead_score(lead_dict)
     doc = frappe.get_doc({
         "doctype": "SmartLife Demo Lead",
         "segment": segment,
@@ -152,6 +209,11 @@ def submit_demo_lead(
         "staff_assisted": 1 if staff_assisted else 0,
         "journey_type": "staff_assist" if staff_assisted else "self_serve",
         "lead_stage": "New",
+        "lead_status": "Goal Selected" if goal else "New",
+        "lead_score": scoring["lead_score"],
+        "lead_temperature": scoring["lead_temperature"],
+        "next_best_action": scoring["next_best_action"],
+        "source_route": "/smartlife-staff-assist" if staff_assisted else "/smartlife-self-serve",
         "analytics_labels": analytics_labels,
         "created_session_id": session_id,
         "demo_note": DEMO_NOTICE,
@@ -288,7 +350,9 @@ def submit_personal_details(data=None):
         "consent_to_contact":      1 if consent else 0,
         "segment":                 saver_type,
         "lead_stage":              "Prospect",
+        "lead_status":             "Personal Details Captured",
         "journey_type":            "self_serve",
+        "source_route":            "/smartlife-self-serve",
         "created_session_id":      session_id,
         "demo_note":               DEMO_NOTICE,
         "analytics_labels": json.dumps({
@@ -299,6 +363,12 @@ def submit_personal_details(data=None):
         }),
     })
     doc.insert(ignore_permissions=True)
+    # Run scoring now that PII fields exist server-side
+    scoring = calculate_lead_score(doc.as_dict())
+    doc.lead_score       = scoring["lead_score"]
+    doc.lead_temperature = scoring["lead_temperature"]
+    doc.next_best_action = scoring["next_best_action"]
+    doc.save(ignore_permissions=True)
     # Return only non-PII: session reference and anonymous bands
     return {
         "success":      True,
@@ -411,3 +481,464 @@ def log_dropoff(step_name, segment="", goal="", journey_type="self_serve"):
     })
     doc.insert(ignore_permissions=True)
     return {"success": True, "demo_notice": DEMO_NOTICE}
+
+
+# ── Phase 2: Lead Operating System ─────────────────────────────────────────
+
+def _mask_phone(phone):
+    """Mask phone for staff-facing display: 070****545"""
+    p = str(phone or "")
+    if len(p) >= 9:
+        return p[:3] + "****" + p[-3:]
+    return "***"
+
+
+def _mask_email(email):
+    """Mask email for staff-facing display: ro***@domain.com"""
+    e = str(email or "")
+    if "@" in e:
+        local, domain = e.split("@", 1)
+        return local[:2] + "***@" + domain
+    return "***"
+
+
+@frappe.whitelist(allow_guest=True)
+def score_lead(session_id):
+    """
+    Return lead score data for a given session_id. No PII returned.
+    Demo environment — staff use only.
+    """
+    _check_pii(session_id)
+    sid = sanitise_demo_text(session_id, 40)
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        filters={"created_session_id": sid},
+        fields=["name", "consent_to_contact", "initial_deposit", "target_amount",
+                "frequency", "segment", "projection_viewed", "checkout_started",
+                "payment_completed", "staff_assisted", "preferred_contact_channel",
+                "age_band", "goal", "source_route"],
+        limit=1,
+    )
+    if not leads:
+        return {"success": False, "message": "Lead not found", "demo_notice": DEMO_NOTICE}
+    scoring = calculate_lead_score(leads[0])
+    return {
+        "success": True,
+        "lead_score":       scoring["lead_score"],
+        "lead_temperature": scoring["lead_temperature"],
+        "next_best_action": scoring["next_best_action"],
+        "score_reasons":    scoring["score_reasons"],
+        "demo_notice":      DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_lead_summary():
+    """
+    Return aggregate lead counts grouped by status and temperature.
+    No PII — counts only. Demo environment — staff use only.
+    """
+    total = frappe.db.count("SmartLife Demo Lead")
+
+    def _count_by(field, value):
+        return frappe.db.count("SmartLife Demo Lead", filters={field: value})
+
+    statuses = [
+        "New", "Personal Details Captured", "Goal Selected",
+        "Projection Viewed", "Checkout Started", "Payment Pending",
+        "Payment Completed", "Staff Follow-up Required",
+        "Contacted", "Converted", "Dormant", "Disqualified",
+    ]
+    by_status = {s: _count_by("lead_status", s) for s in statuses}
+
+    temps = ["Hot", "Warm", "Cold"]
+    by_temp = {t: _count_by("lead_temperature", t) for t in temps}
+
+    segments = frappe.db.get_all(
+        "SmartLife Demo Lead",
+        fields=["segment", "count(name) as cnt"],
+        group_by="segment",
+        as_list=False,
+        limit=20,
+    )
+
+    goals = frappe.db.get_all(
+        "SmartLife Demo Lead",
+        fields=["goal", "count(name) as cnt"],
+        group_by="goal",
+        as_list=False,
+        limit=20,
+    )
+
+    channels = frappe.db.get_all(
+        "SmartLife Demo Lead",
+        fields=["preferred_contact_channel", "count(name) as cnt"],
+        group_by="preferred_contact_channel",
+        as_list=False,
+        limit=20,
+    )
+
+    return {
+        "success":    True,
+        "total":      total,
+        "by_status":  by_status,
+        "by_temp":    by_temp,
+        "by_segment": {r.segment: r.cnt for r in segments if r.segment},
+        "by_goal":    {r.goal: r.cnt for r in goals if r.goal},
+        "by_channel": {r.preferred_contact_channel: r.cnt for r in channels if r.preferred_contact_channel},
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def get_staff_queue(limit=50):
+    """
+    Return a staff action queue: leads requiring follow-up.
+    PII is masked. Demo environment — staff use only.
+    """
+    limit = min(_safe_int(limit, 50), 200)
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        filters=[["lead_status", "in", [
+            "Staff Follow-up Required", "Personal Details Captured",
+            "Goal Selected", "Checkout Started", "Payment Pending",
+        ]]],
+        fields=["name", "lead_status", "lead_temperature", "lead_score",
+                "next_best_action", "segment", "goal", "age_band",
+                "preferred_contact_channel", "consent_to_contact",
+                "primary_phone", "email_address", "assigned_staff",
+                "next_follow_up_on", "source_route", "creation"],
+        order_by="lead_score desc, creation asc",
+        limit=limit,
+    )
+    safe_leads = []
+    for l in leads:
+        safe_leads.append({
+            "name":                  l.name,
+            "lead_status":           l.lead_status or "New",
+            "lead_temperature":      l.lead_temperature or "Cold",
+            "lead_score":            l.lead_score or 0,
+            "next_best_action":      l.next_best_action or "—",
+            "segment":               l.segment or "—",
+            "goal":                  l.goal or "—",
+            "age_band":              l.age_band or "—",
+            "preferred_contact_channel": l.preferred_contact_channel or "—",
+            "consent_to_contact":    bool(l.consent_to_contact),
+            "phone_masked":          _mask_phone(l.primary_phone) if l.primary_phone else "—",
+            "email_masked":          _mask_email(l.email_address) if l.email_address else "—",
+            "assigned_staff":        l.assigned_staff or "Unassigned",
+            "next_follow_up_on":     str(l.next_follow_up_on) if l.next_follow_up_on else "—",
+            "source_route":          l.source_route or "—",
+        })
+    return {
+        "success":    True,
+        "queue":      safe_leads,
+        "count":      len(safe_leads),
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist()
+def update_follow_up_status(lead_name, follow_up_outcome, new_status="Contacted"):
+    """
+    Update follow-up outcome and lead status.
+    Requires authenticated session. Staff use only. Demo environment.
+    """
+    _require_authenticated_staff()
+    _check_pii(lead_name, follow_up_outcome)
+    lead_name      = sanitise_demo_text(lead_name, 50)
+    outcome        = sanitise_demo_text(follow_up_outcome, 200)
+    allowed_status = [
+        "New", "Personal Details Captured", "Goal Selected", "Projection Viewed",
+        "Checkout Started", "Payment Pending", "Payment Completed",
+        "Staff Follow-up Required", "Contacted", "Converted", "Dormant", "Disqualified",
+    ]
+    if new_status not in allowed_status:
+        frappe.throw(f"Invalid status: {new_status}")
+    doc = frappe.get_doc("SmartLife Demo Lead", lead_name)
+    doc.follow_up_outcome  = outcome
+    doc.lead_status        = new_status
+    from datetime import date
+    doc.last_contacted_on  = date.today()
+    doc.save(ignore_permissions=True)
+    return {"success": True, "lead_name": lead_name, "new_status": new_status, "demo_notice": DEMO_NOTICE}
+
+
+@frappe.whitelist()
+def assign_lead(lead_name, staff_name):
+    """
+    Assign a lead to a staff member name.
+    Requires authenticated session. Demo environment.
+    """
+    _require_authenticated_staff()
+    _check_pii(lead_name)
+    lead_name  = sanitise_demo_text(lead_name, 50)
+    staff_name = sanitise_demo_text(staff_name, 100)
+    doc = frappe.get_doc("SmartLife Demo Lead", lead_name)
+    doc.assigned_staff = staff_name
+    if doc.lead_status in ("New", "Personal Details Captured"):
+        doc.lead_status = "Staff Follow-up Required"
+    doc.save(ignore_permissions=True)
+    return {"success": True, "lead_name": lead_name, "assigned_staff": staff_name, "demo_notice": DEMO_NOTICE}
+
+
+@frappe.whitelist()
+def update_journey_flag(session_id, flag):
+    """
+    Update a journey progress flag (projection_viewed, checkout_started, payment_completed).
+    Requires authenticated session. Demo environment.
+    """
+    _require_authenticated_staff()
+    _check_pii(session_id)
+    allowed_flags = ("projection_viewed", "checkout_started", "payment_completed")
+    if flag not in allowed_flags:
+        frappe.throw(f"Invalid flag: {flag}")
+    sid = sanitise_demo_text(session_id, 40)
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        filters={"created_session_id": sid},
+        fields=["name", "consent_to_contact", "initial_deposit", "target_amount",
+                "frequency", "segment", "projection_viewed", "checkout_started",
+                "payment_completed", "staff_assisted", "preferred_contact_channel",
+                "age_band", "goal", "source_route"],
+        limit=1,
+    )
+    if not leads:
+        return {"success": False, "message": "Lead not found", "demo_notice": DEMO_NOTICE}
+    doc = frappe.get_doc("SmartLife Demo Lead", leads[0]["name"])
+    setattr(doc, flag, 1)
+    status_map = {
+        "projection_viewed":  "Projection Viewed",
+        "checkout_started":   "Checkout Started",
+        "payment_completed":  "Payment Completed",
+    }
+    doc.lead_status = status_map[flag]
+    scoring = calculate_lead_score(doc.as_dict())
+    doc.lead_score       = scoring["lead_score"]
+    doc.lead_temperature = scoring["lead_temperature"]
+    doc.next_best_action = scoring["next_best_action"]
+    doc.save(ignore_permissions=True)
+    return {
+        "success":          True,
+        "flag":             flag,
+        "lead_temperature": scoring["lead_temperature"],
+        "next_best_action": scoring["next_best_action"],
+        "demo_notice":      DEMO_NOTICE,
+    }
+
+
+# ── Personalisation Team: full PII endpoints ────────────────────────────────
+
+@frappe.whitelist()
+def get_staff_queue_full(limit=100):
+    """
+    Full Personalisation Team queue: returns unmasked PII fields.
+    Requires SmartLife Personalisation Team, NSSF Staff, or System Manager role.
+    """
+    _require_personalisation_access()
+    limit = min(_safe_int(limit, 100), 500)
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        fields=[
+            "name", "first_name", "last_name", "gender",
+            "primary_phone", "alt_phone", "email_address",
+            "date_of_birth", "age_years", "age_band",
+            "birthday_month", "birthday_day",
+            "preferred_contact_channel", "consent_to_contact",
+            "segment", "goal", "goal_label",
+            "frequency", "initial_deposit", "target_amount", "years",
+            "country", "source_of_income", "industry",
+            "lead_status", "lead_temperature", "lead_score",
+            "next_best_action", "assigned_staff",
+            "last_contacted_on", "next_follow_up_on",
+            "follow_up_outcome", "drop_off_reason",
+            "source_route", "campaign_source", "campaign_medium", "campaign_name",
+            "projection_viewed", "checkout_started", "payment_completed",
+            "staff_assisted", "onboarding_stage",
+            "created_session_id", "creation",
+        ],
+        order_by="lead_score desc, creation asc",
+        limit=limit,
+    )
+    return {
+        "success":     True,
+        "queue":       [dict(l) for l in leads],
+        "count":       len(leads),
+        "access_tier": "personalisation_team_full_pii",
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+@frappe.whitelist()
+def get_lead_full_detail(lead_name):
+    """
+    Full detail for a single lead including all PII.
+    Requires SmartLife Personalisation Team, NSSF Staff, or System Manager role.
+    """
+    _require_personalisation_access()
+    lead_name = sanitise_demo_text(str(lead_name or ""), 50)
+    if not lead_name:
+        frappe.throw("lead_name is required.")
+    doc = frappe.get_doc("SmartLife Demo Lead", lead_name)
+    scoring = calculate_lead_score(doc.as_dict())
+    return {
+        "success":     True,
+        "access_tier": "personalisation_team_full_pii",
+        "lead": {
+            "name":                    doc.name,
+            "first_name":              doc.first_name,
+            "last_name":               doc.last_name,
+            "gender":                  doc.gender,
+            "primary_phone":           doc.primary_phone,
+            "alt_phone":               doc.alt_phone,
+            "email":                   doc.email_address,
+            "date_of_birth":           str(doc.date_of_birth) if doc.date_of_birth else None,
+            "age_years":               doc.age_years,
+            "age_band":                doc.age_band,
+            "birthday_month":          doc.birthday_month,
+            "birthday_day":            doc.birthday_day,
+            "preferred_contact_channel": doc.preferred_contact_channel,
+            "consent_to_contact":      bool(doc.consent_to_contact),
+            "segment":                 doc.segment,
+            "goal":                    doc.goal,
+            "goal_label":              doc.goal_label,
+            "frequency":               doc.frequency,
+            "initial_deposit":         doc.initial_deposit,
+            "target_amount":           doc.target_amount,
+            "years":                   doc.years,
+            "country":                 doc.country,
+            "source_of_income":        doc.source_of_income,
+            "industry":                doc.industry,
+            "lead_status":             doc.lead_status,
+            "lead_temperature":        doc.lead_temperature,
+            "lead_score":              scoring["lead_score"],
+            "next_best_action":        scoring["next_best_action"],
+            "score_reasons":           scoring["score_reasons"],
+            "assigned_staff":          doc.assigned_staff,
+            "last_contacted_on":       str(doc.last_contacted_on) if doc.last_contacted_on else None,
+            "next_follow_up_on":       str(doc.next_follow_up_on) if doc.next_follow_up_on else None,
+            "follow_up_outcome":       doc.follow_up_outcome,
+            "drop_off_reason":         doc.drop_off_reason,
+            "source_route":            doc.source_route,
+            "campaign_source":         doc.campaign_source,
+            "campaign_medium":         doc.campaign_medium,
+            "campaign_name":           doc.campaign_name,
+            "projection_viewed":       bool(doc.projection_viewed),
+            "checkout_started":        bool(doc.checkout_started),
+            "payment_completed":       bool(doc.payment_completed),
+            "staff_assisted":          bool(doc.staff_assisted),
+            "onboarding_stage":        doc.onboarding_stage,
+            "creation":                str(doc.creation),
+        },
+        "demo_notice": DEMO_NOTICE,
+    }
+
+
+# ── Phase 4: Messaging APIs ────────────────────────────────────────────────────
+
+
+@frappe.whitelist(allow_guest=True)
+def get_message_templates(channel=None):
+    """
+    Return available message template metadata.
+    Guest-safe: returns template names, channels and trigger stages only.
+    No lead PII. No message bodies.
+    """
+    from nssf_smart_savers.communication_templates import list_templates
+    return {
+        "success":   True,
+        "templates": list_templates(channel=channel or None),
+    }
+
+
+@frappe.whitelist()
+def preview_smartlife_message(lead_name, template_name, channel="SMS"):
+    """
+    Preview a rendered message for a lead.
+    Requires authenticated staff session.
+    Full PII (first_name) in preview requires approved personalisation role.
+    """
+    _require_personalisation_access()
+    lead_name     = sanitise_demo_text(str(lead_name or ""), 50)
+    template_name = sanitise_demo_text(str(template_name or ""), 80)
+    channel       = str(channel or "SMS")
+    if channel not in ("SMS", "Email"):
+        frappe.throw("Channel must be SMS or Email.")
+    from nssf_smart_savers.messaging import preview_message
+    return preview_message(lead_name=lead_name, template_name=template_name, channel=channel)
+
+
+@frappe.whitelist()
+def send_smartlife_demo_message(lead_name, template_name, channel="SMS"):
+    """
+    Send a message to a lead via the specified channel.
+    Requires approved personalisation role.
+    Enforces consent_to_contact before send.
+    Never guest-open.
+    """
+    _require_personalisation_access()
+    lead_name     = sanitise_demo_text(str(lead_name or ""), 50)
+    template_name = sanitise_demo_text(str(template_name or ""), 80)
+    channel       = str(channel or "SMS")
+    if not lead_name or not template_name:
+        frappe.throw("lead_name and template_name are required.")
+    if channel not in ("SMS", "Email"):
+        frappe.throw("Channel must be SMS or Email.")
+    from nssf_smart_savers.messaging import send_smartlife_message
+    result = send_smartlife_message(
+        lead_name=lead_name,
+        template_name=template_name,
+        channel=channel,
+        staff_user=frappe.session.user,
+    )
+    return result
+
+
+@frappe.whitelist()
+def get_communication_history(lead_name, limit=20):
+    """
+    Return communication history for a lead.
+    Requires approved personalisation role.
+    Returns masked recipient only — never raw phone/email.
+    """
+    _require_personalisation_access()
+    lead_name = sanitise_demo_text(str(lead_name or ""), 50)
+    if not lead_name:
+        frappe.throw("lead_name is required.")
+    try:
+        limit = max(1, min(int(limit), 100))
+    except (ValueError, TypeError):
+        limit = 20
+    logs = frappe.db.get_all(
+        "SmartLife Communication Log",
+        filters={"lead": lead_name},
+        fields=[
+            "name", "channel", "template_name", "recipient_masked",
+            "message_status", "provider", "provider_reference",
+            "sent_on", "failure_reason", "consent_snapshot",
+            "staff_owner", "triggered_by_stage", "demo_mode",
+        ],
+        order_by="sent_on desc",
+        limit=limit,
+    )
+    return {
+        "success": True,
+        "lead":    lead_name,
+        "history": [dict(l) for l in logs],
+        "count":   len(logs),
+    }
+
+
+@frappe.whitelist()
+def get_messaging_config_status():
+    """
+    Return provider config status — booleans and status strings only.
+    Never reveals secret values, token fragments, or credential content.
+    Requires authenticated staff session.
+    """
+    _require_authenticated_staff()
+    from nssf_smart_savers.messaging import get_messaging_provider_status
+    return {
+        "success": True,
+        "config":  get_messaging_provider_status(),
+    }

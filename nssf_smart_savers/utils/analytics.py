@@ -7,12 +7,22 @@ import uuid
 import json
 import frappe
 
+# Strict allowlist: only these keys may be forwarded to analytics.
+# Everything else — especially PII — is silently dropped.
+# PII that must never reach analytics:
+#   first_name, last_name, full_name, phone, primary_phone, email,
+#   nin, national_id, date_of_birth, dob, birthday_day, birthday_month,
+#   age_years, exact_age, notes, remarks, raw_remarks,
+#   user_submitted_text, free_text, otp, password, payment_ref
 ALLOWED_PARAMS = [
     'journey_type', 'segment', 'goal_category', 'frequency', 'period_band',
     'target_band', 'source_category', 'industry_category', 'country_band',
     'step_name', 'step_number', 'saver_type', 'staff_assisted',
     'payment_status', 'completion_status', 'dropoff_step', 'lead_stage',
-    'demo_environment'
+    # Phase 2 safe dimensions
+    'lead_temperature', 'consent_status', 'source_route', 'staff_view_type',
+    'onboarding_stage', 'age_band', 'gender_category', 'country_category',
+    'demo_environment',
 ]
 
 
