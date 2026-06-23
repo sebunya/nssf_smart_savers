@@ -1246,3 +1246,262 @@ def get_contribution_intent(intent_name=None, session_id=None):
         "demo_notice": DEMO_NOTICE
     }
 
+
+# ── Phase 5 Command Centre & Analytics APIs ──────────────────────────────────
+
+@frappe.whitelist()
+def get_command_centre_summary():
+    """
+    Return all summary metric counts in one call.
+    PII risk: None. Counts and percentages only.
+    """
+    _require_authenticated_staff()
+
+    # Total leads
+    total = frappe.db.count("SmartLife Demo Lead")
+
+    # Lead status counts
+    personal_details = frappe.db.count(
+        "SmartLife Demo Lead",
+        filters={"lead_status": ["in", ["Personal Details Captured", "Personal Details Completed", "Follow-up Completed", "Converted"]]}
+    )
+    projections_viewed = frappe.db.count("SmartLife Demo Lead", filters={"projection_viewed": 1})
+    checkout_started = frappe.db.count("SmartLife Demo Lead", filters={"checkout_started": 1})
+    payment_pending = frappe.db.count("SmartLife Demo Lead", filters={"lead_status": "Payment Pending"})
+    payment_completed = frappe.db.count("SmartLife Demo Lead", filters={"payment_completed": 1})
+
+    conversion_rate = 0.0
+    if total > 0:
+        conversion_rate = (payment_completed / total) * 100.0
+
+    # Staff metrics
+    staff_followup_required = frappe.db.count(
+        "SmartLife Demo Lead",
+        filters={"lead_status": "Staff Follow-up Required"}
+    )
+    unassigned = frappe.db.count(
+        "SmartLife Demo Lead",
+        filters={"lead_status": "Staff Follow-up Required", "assigned_to": ["isin", ["", None]]}
+    )
+    
+    # Overdue follow-up
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    overdue = frappe.db.count(
+        "SmartLife Demo Lead",
+        filters={
+            "lead_status": "Staff Follow-up Required",
+            "next_follow_up_on": ["<", today_str]
+        }
+    )
+
+    return {
+        "total": total,
+        "personal_details": personal_details,
+        "projections_viewed": projections_viewed,
+        "checkout_started": checkout_started,
+        "payment_pending": payment_pending,
+        "payment_completed": payment_completed,
+        "conversion_rate": conversion_rate,
+        "staff_followup_required": staff_followup_required,
+        "unassigned": unassigned,
+        "overdue": overdue,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_conversion_funnel():
+    """
+    Return count at each funnel stage for drop-off visualisation.
+    PII risk: None. Counts only.
+    """
+    _require_authenticated_staff()
+
+    total = frappe.db.count("SmartLife Demo Lead")
+    
+    # Stages:
+    # 1. Goal Selected (Total starts / any lead is at least at this stage)
+    # 2. Personal Details Completed (lead_status is not Draft / Personal Details captured)
+    # 3. Projection Viewed
+    # 4. Checkout Started
+    # 5. Payment Completed
+    stages = [
+        {"stage": "Goal Selected", "count": total},
+        {
+            "stage": "Personal Details Completed",
+            "count": frappe.db.count(
+                "SmartLife Demo Lead",
+                filters={"lead_status": ["in", ["Personal Details Captured", "Personal Details Completed", "Follow-up Completed", "Converted"]]}
+            )
+        },
+        {
+            "stage": "Projection Viewed",
+            "count": frappe.db.count("SmartLife Demo Lead", filters={"projection_viewed": 1})
+        },
+        {
+            "stage": "Checkout Started",
+            "count": frappe.db.count("SmartLife Demo Lead", filters={"checkout_started": 1})
+        },
+        {
+            "stage": "Payment Completed",
+            "count": frappe.db.count("SmartLife Demo Lead", filters={"payment_completed": 1})
+        }
+    ]
+
+    for stg in stages:
+        stg["pct_of_total"] = (stg["count"] / total * 100.0) if total > 0 else 0.0
+
+    return {
+        "stages": stages,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_dropoff_by_stage():
+    """
+    Count of leads whose dropoff_step matches each stage.
+    PII risk: None.
+    """
+    _require_authenticated_staff()
+
+    dropoffs = frappe.get_all(
+        "SmartLife Demo Lead",
+        fields=["dropoff_step", "count(name) as qty"],
+        group_by="dropoff_step"
+    )
+
+    by_stage = {}
+    for d in dropoffs:
+        step = d.get("dropoff_step") or "Not Dropped Off / Converted"
+        by_stage[step] = d.get("qty") or 0
+
+    return {
+        "by_stage": by_stage,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_lead_distribution(dimension):
+    """
+    Count leads grouped by a safe dimension.
+    PII risk: None. Strictly allowlisted fields.
+    """
+    _require_authenticated_staff()
+
+    # Allowed safe fields only
+    safe_dimensions = {
+        "segment",
+        "goal",
+        "age_band",
+        "preferred_contact_channel",
+        "lead_temperature",
+        "gender",
+        "country",
+        "frequency"
+    }
+
+    if dimension not in safe_dimensions:
+        frappe.throw(
+            "Dimension not allowed. Only safe aggregate dimensions can be queried.",
+            frappe.PermissionError
+        )
+
+    # Note: 'gender' field map might be gender_category in some schemas or gender in lead.
+    # We query the exact field. If the field doesn't exist, it handles gracefully.
+    try:
+        dist = frappe.get_all(
+            "SmartLife Demo Lead",
+            fields=[f"{dimension} as val", "count(name) as qty"],
+            group_by=dimension
+        )
+    except Exception:
+        # Fallback if field name varies or DocType not fully migrated
+        dist = []
+
+    distribution = {}
+    for item in dist:
+        val = item.get("val") or "Unknown"
+        distribution[val] = item.get("qty") or 0
+
+    return {
+        "dimension": dimension,
+        "distribution": distribution,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_campaign_performance():
+    """
+    Count leads by campaign_source and campaign_medium.
+    PII risk: None.
+    """
+    _require_authenticated_staff()
+
+    by_source = {}
+    by_medium = {}
+
+    try:
+        srcs = frappe.get_all(
+            "SmartLife Demo Lead",
+            fields=["campaign_source as src", "count(name) as qty"],
+            group_by="campaign_source"
+        )
+        for s in srcs:
+            by_source[s.get("src") or "Organic / Direct"] = s.get("qty") or 0
+    except Exception:
+        pass
+
+    try:
+        meds = frappe.get_all(
+            "SmartLife Demo Lead",
+            fields=["campaign_medium as med", "count(name) as qty"],
+            group_by="campaign_medium"
+        )
+        for m in meds:
+            by_medium[m.get("med") or "Organic / Direct"] = m.get("qty") or 0
+    except Exception:
+        pass
+
+    return {
+        "by_source": by_source,
+        "by_medium": by_medium,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_birth_month_distribution():
+    """
+    Show birthday month distribution for birthday campaign planning.
+    PII risk: None. Returns counts per month index (1-12) only. Never exposes day or name.
+    """
+    _require_authenticated_staff()
+
+    months = {m: 0 for m in range(1, 13)}
+
+    try:
+        leads = frappe.get_all(
+            "SmartLife Demo Lead",
+            fields=["birthday_month"]
+        )
+        for lead in leads:
+            bm = lead.get("birthday_month")
+            if bm:
+                try:
+                    bm_idx = int(bm)
+                    if 1 <= bm_idx <= 12:
+                        months[bm_idx] += 1
+                except (ValueError, TypeError):
+                    pass
+    except Exception:
+        pass
+
+    return {
+        "months": months,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
