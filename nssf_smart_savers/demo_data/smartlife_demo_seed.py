@@ -512,6 +512,7 @@ def seed_demo_data():
             # 1. Lead Record
             lead_data = {
                 "doctype": "SmartLife Demo Lead",
+                "naming_series": "SL-LEAD-.YYYY.-.####",
                 "first_name": item["first_name"],
                 "last_name": item["last_name"],
                 "gender": item["gender"],
@@ -554,6 +555,9 @@ def seed_demo_data():
                 lead_data["name"] = lead_name
                 doc = frappe.get_doc(lead_data)
                 doc.insert(ignore_permissions=True)
+                if doc.name != lead_name:
+                    frappe.rename_doc("SmartLife Demo Lead", doc.name, lead_name, force=True, ignore_permissions=True)
+                    doc.name = lead_name
                 summary["leads_created"] += 1
 
             # 2. Linked Contribution Intent
