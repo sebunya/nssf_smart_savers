@@ -20,12 +20,12 @@
   <span class="sl-brand-badge">Prototype review</span>
 </header>
 <div class="sl-demo-notice" style="background-color: #ff9800; color: #000; padding: 10px; text-align: center; font-weight: bold;">
-  ⚠️ SmartLife Flexi &mdash; Demo / Sandbox environment. No real payments will be collected. No real contribution made.
+  <strong>Notice:</strong> SmartLife Flexi &mdash; Demo / Sandbox environment. No real payments will be collected. No real contribution made.
 </div>
 
 <div class="smartlife-checkout-wrapper">
   <h1>SmartLife Flexi — Demo Checkout</h1>
-  <div class="sl-checkout-demo-badge">🔒 DEMO — Sandbox payment verification flow enabled.</div>
+  <div class="sl-checkout-demo-badge">DEMO — Sandbox payment verification flow enabled.</div>
 
   <!-- Plan summary card -->
   <div class="sl-summary sl-checkout-summary" id="sl-checkout-summary">
@@ -43,19 +43,19 @@
     <div class="sl-payment-options">
       <label class="sl-payment-option">
         <input type="radio" name="payment_method" value="Mobile Money" checked>
-        📱 Mobile Money (MTN / Airtel)
+        Mobile Money (MTN / Airtel)
       </label>
       <label class="sl-payment-option">
         <input type="radio" name="payment_method" value="Card">
-        💳 Credit / Debit Card
+        Credit / Debit Card
       </label>
       <label class="sl-payment-option">
         <input type="radio" name="payment_method" value="Bank Transfer">
-        🏦 Bank Transfer
+        Bank Transfer
       </label>
       <label class="sl-payment-option">
         <input type="radio" name="payment_method" value="Demo">
-        🧪 Demo Simulation Mode
+        Demo Simulation Mode
       </label>
     </div>
   </div>
@@ -82,14 +82,14 @@
     </div>
 
     <div class="sl-payment-success" id="sl-payment-success" style="display:none">
-      <div class="sl-success-icon">✅</div>
+      <div class="sl-success-icon"><span style="color:#2e7d32; font-size:32px;">✓</span></div>
       <h2>Payment Completed Successfully!</h2>
       <p class="sl-demo-tag">This is a sandbox/demo simulation. No real funds were moved.</p>
       <div id="sl-payment-ref" style="margin:12px 0;font-size:14px;color:#555"></div>
       <a href="/smartlife-thank-you" class="sl-btn-primary" id="sl-continue-btn">Continue to Summary</a>
     </div>
     <div class="sl-payment-error" id="sl-payment-error" style="display:none">
-      <div class="sl-error-icon">❌</div>
+      <div class="sl-error-icon"><span style="color:#c62828; font-size:32px;">✕</span></div>
       <h2>Demo Payment Failed</h2>
       <button class="sl-btn-secondary" onclick="SLCheckout.retry()">Retry</button>
     </div>

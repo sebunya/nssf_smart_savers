@@ -10,11 +10,11 @@ def get_context(context):
 
     # 5 saver types - no ZWJ emoji (root cause fix)
     context.saver_types = [
-        {"key": "existing_member", "label": "Existing NSSF Member", "icon": "🏦"},
-        {"key": "new_voluntary", "label": "New Saver / Non-Member", "icon": "✨"},
-        {"key": "diaspora", "label": "Diaspora Saver", "icon": "🌍"},
-        {"key": "informal_sector", "label": "Informal Sector Saver", "icon": "🛒"},
-        {"key": "staff_assisted_prospect", "label": "Staff-Assisted Prospect", "icon": "🤝"},
+        {"key": "existing_member", "label": "Existing NSSF Member", "icon": ""},
+        {"key": "new_voluntary", "label": "New Saver / Non-Member", "icon": ""},
+        {"key": "diaspora", "label": "Diaspora Saver", "icon": ""},
+        {"key": "informal_sector", "label": "Informal Sector Saver", "icon": ""},
+        {"key": "staff_assisted_prospect", "label": "Staff-Assisted Prospect", "icon": ""},
     ]
 
     context.saver_type_descriptions = {
@@ -27,16 +27,16 @@ def get_context(context):
 
     # 10 goals
     context.goals = [
-        {"key": "education", "label": "Education", "icon": "🎓"},
-        {"key": "homeownership", "label": "Home Ownership", "icon": "🏠"},
-        {"key": "land", "label": "Land Purchase", "icon": "🌱"},
-        {"key": "car", "label": "Car Purchase", "icon": "🚗"},
-        {"key": "business_capital", "label": "Business Capital", "icon": "📈"},
-        {"key": "emergencies", "label": "Emergency Fund", "icon": "🛡️"},
-        {"key": "wedding", "label": "Wedding / Marriage", "icon": "💍"},
-        {"key": "retirement", "label": "Retirement", "icon": "🌅"},
-        {"key": "financial_independence", "label": "Financial Independence", "icon": "🦁"},
-        {"key": "other", "label": "Other Goal", "icon": "⭐"},
+        {"key": "education", "label": "Education", "icon": ""},
+        {"key": "homeownership", "label": "Home Ownership", "icon": ""},
+        {"key": "land", "label": "Land Purchase", "icon": ""},
+        {"key": "car", "label": "Car Purchase", "icon": ""},
+        {"key": "business_capital", "label": "Business Capital", "icon": ""},
+        {"key": "emergencies", "label": "Emergency Fund", "icon": ""},
+        {"key": "wedding", "label": "Wedding / Marriage", "icon": ""},
+        {"key": "retirement", "label": "Retirement", "icon": ""},
+        {"key": "financial_independence", "label": "Financial Independence", "icon": ""},
+        {"key": "other", "label": "Other Goal", "icon": ""},
     ]
 
     # 6 frequencies (includes semi-annually)
