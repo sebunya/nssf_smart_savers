@@ -15,6 +15,9 @@ website_route_rules = [
     {"from_route": "/smartlife-checkout-demo", "to_route": "smartlife-checkout-demo"},
     {"from_route": "/smartlife-thank-you", "to_route": "smartlife-thank-you"},
     {"from_route": "/smartlife-support-demo", "to_route": "smartlife-support-demo"},
+    {"from_route": "/smartlife-staff-queue", "to_route": "smartlife-staff-queue"},
+    {"from_route": "/smartlife-staff-queue-full", "to_route": "smartlife-staff-queue-full"},
+    {"from_route": "/smartlife-messaging-demo", "to_route": "smartlife-messaging-demo"},
 ]
 
 # Jinja

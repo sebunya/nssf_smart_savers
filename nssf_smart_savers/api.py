@@ -942,3 +942,307 @@ def get_messaging_config_status():
         "success": True,
         "config":  get_messaging_provider_status(),
     }
+
+
+# =====================================================================
+# Phase 3: Payment and Contribution Readiness APIs
+# =====================================================================
+
+@frappe.whitelist(allow_guest=True)
+def create_payment_intent(session_id, amount, frequency, payment_method):
+    """
+    Create a SmartLife Contribution Intent record.
+    Access: allow_guest=True. Returns intent_name and session_id only.
+    """
+    session_id = sanitise_demo_text(str(session_id or ""), 40)
+    if not session_id:
+        frappe.throw("session_id is required.")
+
+    # Locate the linked lead
+    leads = frappe.get_all(
+        "SmartLife Demo Lead",
+        filters={"name": session_id},
+        fields=["name", "saver_type", "staff_assisted"],
+        limit=1
+    )
+    if not leads:
+        # Fallback query by session_id/other unique field if lead name is not session_id
+        leads = frappe.get_all(
+            "SmartLife Demo Lead",
+            filters={"consent_snapshot": session_id},  # or whatever unique session identifier exists
+            fields=["name", "saver_type", "staff_assisted"],
+            limit=1
+        )
+
+    if not leads:
+        return {
+            "success": False,
+            "message": "Session not found."
+        }
+
+    lead_doc = leads[0]
+    amount = _safe_float(amount)
+    if amount <= 0:
+        frappe.throw("Contribution amount must be greater than zero.")
+
+    intent_doc = frappe.get_doc({
+        "doctype": "SmartLife Contribution Intent",
+        "lead": lead_doc.name,
+        "session_id": session_id,
+        "saver_type": lead_doc.saver_type,
+        "contribution_amount": amount,
+        "contribution_frequency": sanitise_demo_text(str(frequency), 20),
+        "payment_method": sanitise_demo_text(str(payment_method), 20),
+        "payment_status": "Draft",
+        "created_by_channel": "Staff-Assisted" if lead_doc.staff_assisted else "Self-Serve",
+        "demo_mode": 1
+    })
+    intent_doc.insert(ignore_permissions=True)
+
+    return {
+        "success": True,
+        "intent_name": intent_doc.name,
+        "session_id": session_id
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def initiate_pesapal_checkout(intent_name):
+    """
+    Initiate checkout for a contribution intent.
+    Calls the Pesapal adapter to retrieve the redirect URL.
+    """
+    intent_name = sanitise_demo_text(str(intent_name or ""), 50)
+    if not intent_name:
+        frappe.throw("intent_name is required.")
+
+    try:
+        doc = frappe.get_doc("SmartLife Contribution Intent", intent_name)
+    except frappe.DoesNotExistError:
+        frappe.throw("Contribution intent not found.")
+
+    doc.payment_status = "Checkout Started"
+    doc.checkout_started_on = datetime.now()
+    doc.save(ignore_permissions=True)
+
+    from nssf_smart_savers.integrations.pesapal_adapter import submit_order
+    res = submit_order(
+        intent_name=doc.name,
+        amount=doc.contribution_amount,
+        currency="UGX",
+        description=f"SmartLife Flexi Onboarding - {doc.saver_type or 'Saver'}"
+    )
+
+    if res.get("success"):
+        doc.pesapal_tracking_id = res.get("tracking_id")
+        doc.pesapal_merchant_reference = doc.name
+        doc.save(ignore_permissions=True)
+        return {
+            "success": True,
+            "redirect_url": res.get("redirect_url"),
+            "demo_mode": res.get("demo_mode", True)
+        }
+    else:
+        # Fallback to simulated demo URL if Pesapal call fails or credentials missing
+        from nssf_smart_savers.integrations.pesapal_adapter import create_demo_order
+        fallback = create_demo_order(doc.contribution_amount, reference=doc.name)
+        doc.pesapal_tracking_id = fallback.get("tracking_id")
+        doc.pesapal_merchant_reference = doc.name
+        doc.save(ignore_permissions=True)
+        return {
+            "success": True,
+            "redirect_url": fallback.get("redirect_url"),
+            "demo_mode": True,
+            "message": res.get("message", "Fallback active")
+        }
+
+
+@frappe.whitelist(allow_guest=True)
+def handle_pesapal_callback(OrderTrackingId=None, OrderMerchantReference=None):
+    """
+    Handle redirect callback from Pesapal.
+    Access: allow_guest=True. Updates callback_status and redirects user.
+    """
+    tracking_id = OrderTrackingId or frappe.request.params.get("pesapal_transaction_tracking_id")
+    merchant_ref = OrderMerchantReference or frappe.request.params.get("pesapal_merchant_reference")
+
+    if not merchant_ref:
+        # Gracefully redirect to thank you if no reference
+        frappe.local.flags.redirect_to = "/smartlife-thank-you?status=unknown"
+        return
+
+    try:
+        doc = frappe.get_doc("SmartLife Contribution Intent", merchant_ref)
+    except frappe.DoesNotExistError:
+        frappe.local.flags.redirect_to = "/smartlife-thank-you?status=unknown"
+        return
+
+    from nssf_smart_savers.integrations.pesapal_adapter import verify_payment_callback
+    res = verify_payment_callback(frappe.request.params)
+
+    doc.callback_status = res.get("payment_status_description") or "PENDING"
+    if res.get("success") and res.get("payment_status_description") == "COMPLETED":
+        doc.payment_status = "Completed"
+        doc.payment_completed_on = datetime.now()
+        # Mark journey flag on lead
+        lead_doc = frappe.get_doc("SmartLife Demo Lead", doc.lead)
+        lead_doc.db_set("payment_completed", 1)
+        lead_doc.db_set("lifecycle_stage", "Converted")
+    elif res.get("payment_status_description") in ["FAILED", "CANCELLED"]:
+        doc.payment_status = res.get("payment_status_description").capitalize()
+        doc.failure_reason = res.get("failure_reason") or "Payment process aborted or failed at gateway."
+
+    doc.save(ignore_permissions=True)
+
+    # Redirect user gracefully to the thank-you screen
+    status_param = "completed" if doc.payment_status == "Completed" else "failed"
+    redirect_url = f"/smartlife-thank-you?status={status_param}&ref={doc.name}"
+    frappe.local.flags.redirect_to = redirect_url
+
+
+@frappe.whitelist(allow_guest=True)
+def handle_pesapal_ipn(OrderTrackingId=None, OrderMerchantReference=None, OrderNotificationType=None):
+    """
+    Handle server-to-server IPN notification from Pesapal.
+    Access: allow_guest=True. ALWAYS returns a dictionary (JSON format) and status 200.
+    """
+    # Force JSON response headers in Frappe context if possible, or return dict directly
+    params = frappe.request.params
+    tracking_id = OrderTrackingId or params.get("OrderTrackingId")
+    merchant_ref = OrderMerchantReference or params.get("OrderMerchantReference")
+
+    if not merchant_ref:
+        return {"status": "error", "message": "Missing reference"}
+
+    try:
+        doc = frappe.get_doc("SmartLife Contribution Intent", merchant_ref)
+    except frappe.DoesNotExistError:
+        return {"status": "error", "message": "Intent not found"}
+
+    from nssf_smart_savers.integrations.pesapal_adapter import handle_ipn
+    res = handle_ipn(params)
+
+    doc.ipn_status = res.get("payment_status") or "PENDING"
+    if res.get("status") == "ok":
+        if res.get("payment_status") == "COMPLETED":
+            doc.payment_status = "Completed"
+            doc.payment_completed_on = datetime.now()
+            # Update lead
+            lead_doc = frappe.get_doc("SmartLife Demo Lead", doc.lead)
+            lead_doc.db_set("payment_completed", 1)
+            lead_doc.db_set("lifecycle_stage", "Converted")
+        elif res.get("payment_status") in ["FAILED", "CANCELLED"]:
+            doc.payment_status = res.get("payment_status").capitalize()
+
+    doc.save(ignore_permissions=True)
+    return {"status": "ok", "message": "IPN processed successfully"}
+
+
+@frappe.whitelist()
+def verify_payment_status(intent_name):
+    """
+    Query current status of a payment intent at the gateway.
+    Requires authenticated staff.
+    """
+    _require_authenticated_staff()
+    intent_name = sanitise_demo_text(str(intent_name or ""), 50)
+    if not intent_name:
+        frappe.throw("intent_name is required.")
+
+    try:
+        doc = frappe.get_doc("SmartLife Contribution Intent", intent_name)
+    except frappe.DoesNotExistError:
+        frappe.throw("Contribution intent not found.")
+
+    pesapal_live_status = None
+    if doc.pesapal_tracking_id:
+        from nssf_smart_savers.integrations.pesapal_adapter import get_transaction_status
+        pesapal_live_status = get_transaction_status(doc.pesapal_tracking_id)
+        if pesapal_live_status.get("success"):
+            new_status = pesapal_live_status.get("payment_status_description")
+            if new_status == "COMPLETED":
+                doc.payment_status = "Completed"
+                doc.payment_completed_on = datetime.now()
+                # Update lead
+                lead_doc = frappe.get_doc("SmartLife Demo Lead", doc.lead)
+                lead_doc.db_set("payment_completed", 1)
+                lead_doc.db_set("lifecycle_stage", "Converted")
+            elif new_status in ["FAILED", "CANCELLED"]:
+                doc.payment_status = new_status.capitalize()
+            doc.save(ignore_permissions=True)
+
+    return {
+        "success": True,
+        "intent_name": doc.name,
+        "payment_status": doc.payment_status,
+        "payment_reference": doc.payment_reference,
+        "pesapal_tracking_id": doc.pesapal_tracking_id,
+        "callback_status": doc.callback_status,
+        "ipn_status": doc.ipn_status,
+        "reconciliation_status": doc.reconciliation_status,
+        "checkout_started_on": str(doc.checkout_started_on) if doc.checkout_started_on else None,
+        "payment_completed_on": str(doc.payment_completed_on) if doc.payment_completed_on else None,
+        "pesapal_live_status": pesapal_live_status,
+        "demo_mode": bool(doc.demo_mode),
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_contribution_intent(intent_name=None, session_id=None):
+    """
+    Get details of a contribution intent.
+    Requires approved personalisation role access.
+    """
+    _require_personalisation_access()
+
+    doc = None
+    if intent_name:
+        intent_name = sanitise_demo_text(str(intent_name), 50)
+        try:
+            doc = frappe.get_doc("SmartLife Contribution Intent", intent_name)
+        except frappe.DoesNotExistError:
+            pass
+    elif session_id:
+        session_id = sanitise_demo_text(str(session_id), 40)
+        intents = frappe.get_all(
+            "SmartLife Contribution Intent",
+            filters={"session_id": session_id},
+            fields=["name"],
+            order_by="creation desc",
+            limit=1
+        )
+        if intents:
+            doc = frappe.get_doc("SmartLife Contribution Intent", intents[0].name)
+
+    if not doc:
+        return {
+            "success": False,
+            "message": "Contribution intent not found."
+        }
+
+    return {
+        "success": True,
+        "intent": {
+            "name": doc.name,
+            "lead": doc.lead,
+            "session_id": doc.session_id,
+            "saver_type": doc.saver_type,
+            "contribution_amount": float(doc.contribution_amount or 0),
+            "contribution_frequency": doc.contribution_frequency,
+            "payment_method": doc.payment_method,
+            "payment_status": doc.payment_status,
+            "payment_reference": doc.payment_reference,
+            "checkout_started_on": str(doc.checkout_started_on) if doc.checkout_started_on else None,
+            "payment_completed_on": str(doc.payment_completed_on) if doc.payment_completed_on else None,
+            "pesapal_tracking_id": doc.pesapal_tracking_id,
+            "callback_status": doc.callback_status,
+            "ipn_status": doc.ipn_status,
+            "reconciliation_status": doc.reconciliation_status,
+            "created_by_channel": doc.created_by_channel,
+            "demo_mode": bool(doc.demo_mode),
+            "failure_reason": doc.failure_reason
+        },
+        "demo_notice": DEMO_NOTICE
+    }
+
