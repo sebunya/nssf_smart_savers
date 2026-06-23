@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "autoname": "format:SL-INTENT-{YYYY}-{#####}",
+ "creation": "2026-06-22 00:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 0,
+ "engine": "InnoDB",
+ "field_order": [
+  "lead",
+  "session_id",
+  "saver_type",
+  "contribution_amount",
+  "contribution_frequency",
+  "payment_method",
+  "payment_status",
+  "payment_reference",
+  "checkout_started_on",
+  "payment_completed_on",
+  "pesapal_tracking_id",
+  "pesapal_merchant_reference",
+  "callback_status",
+  "ipn_status",
+  "reconciliation_status",
+  "created_by_channel",
+  "demo_mode",
+  "failure_reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "lead",
+   "fieldtype": "Link",
+   "label": "Lead",
+   "options": "SmartLife Demo Lead",
+   "reqd": 1
+  },
+  {
+   "fieldname": "session_id",
+   "fieldtype": "Data",
+   "label": "Session ID"
+  },
+  {
+   "fieldname": "saver_type",
+   "fieldtype": "Data",
+   "label": "Saver Type"
+  },
+  {
+   "fieldname": "contribution_amount",
+   "fieldtype": "Currency",
+   "label": "Contribution Amount"
+  },
+  {
+   "fieldname": "contribution_frequency",
+   "fieldtype": "Select",
+   "label": "Contribution Frequency",
+   "options": "\nMonthly\nWeekly\nQuarterly\nAnnually\nOne-Time"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "\nMobile Money\nBank Transfer\nCard\nCash\nDemo"
+  },
+  {
+   "fieldname": "payment_status",
+   "fieldtype": "Select",
+   "label": "Payment Status",
+   "options": "\nDraft\nCheckout Started\nPending\nCompleted\nFailed\nCancelled\nReconciled",
+   "reqd": 1,
+   "default": "Draft"
+  },
+  {
+   "fieldname": "payment_reference",
+   "fieldtype": "Data",
+   "label": "Payment Reference",
+   "description": "Internal reference — PII. Never expose in public APIs or analytics."
+  },
+  {
+   "fieldname": "checkout_started_on",
+   "fieldtype": "Datetime",
+   "label": "Checkout Started On"
+  },
+  {
+   "fieldname": "payment_completed_on",
+   "fieldtype": "Datetime",
+   "label": "Payment Completed On"
+  },
+  {
+   "fieldname": "pesapal_tracking_id",
+   "fieldtype": "Data",
+   "label": "Pesapal Tracking ID"
+  },
+  {
+   "fieldname": "pesapal_merchant_reference",
+   "fieldtype": "Data",
+   "label": "Pesapal Merchant Reference"
+  },
+  {
+   "fieldname": "callback_status",
+   "fieldtype": "Data",
+   "label": "Callback Status"
+  },
+  {
+   "fieldname": "ipn_status",
+   "fieldtype": "Data",
+   "label": "IPN Status"
+  },
+  {
+   "fieldname": "reconciliation_status",
+   "fieldtype": "Select",
+   "label": "Reconciliation Status",
+   "options": "\nNot Applicable\nPending\nMatched\nMismatched\nManual Review",
+   "default": "Not Applicable"
+  },
+  {
+   "fieldname": "created_by_channel",
+   "fieldtype": "Select",
+   "label": "Created By Channel",
+   "options": "\nSelf-Serve\nStaff-Assisted\nAPI"
+  },
+  {
+   "fieldname": "demo_mode",
+   "fieldtype": "Check",
+   "label": "Demo Mode",
+   "default": "1"
+  },
+  {
+   "fieldname": "failure_reason",
+   "fieldtype": "Small Text",
+   "label": "Failure Reason"
+  }
+ ],
+ "in_create": 0,
+ "is_submittable": 0,
+ "issingle": 0,
+ "istable": 0,
+ "max_attachments": 0,
+ "modified": "2026-06-22 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Nssf Smart Savers",
+ "name": "SmartLife Contribution Intent",
+ "naming_rule": "Expression (using Jinja)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 0,
+   "export": 0,
+   "print": 0,
+   "read": 1,
+   "report": 0,
+   "role": "SmartLife Personalisation Team",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 0,
+   "export": 0,
+   "print": 0,
+   "read": 1,
+   "report": 0,
+   "role": "NSSF Staff",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 0,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "track_changes": 0,
+ "track_seen": 0,
+ "track_views": 0
+}

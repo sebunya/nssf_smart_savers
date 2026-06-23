@@ -1,0 +1,327 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-command-centre-20260623">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-command-centre-20260623"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-command-centre-20260623"></script>
+{% include "nssf_smart_savers/templates/includes/smartlife_brand_shell.html" %}
+<script>document.documentElement.classList.add('sl-demo-route')</script>
+
+<div class="sl-brand-shell">
+<header class="sl-brand-bar" aria-label="NSSF SmartLife Flexi" data-brand-title="NSSF SmartLife Flexi">
+  <div class="sl-brand-lockup">
+    <span class="sl-brand-mark">NSSF</span>
+    <span class="sl-brand-title">SmartLife Flexi</span>
+    <span class="sl-brand-tagline">Command Centre</span>
+  </div>
+  <span class="sl-brand-badge">Aggregate view</span>
+</header>
+<div class="sl-demo-notice">
+  SmartLife Flexi &mdash; Command Centre. Aggregate performance tracking. Staff sign-in required.
+</div>
+
+{% if is_guest %}
+<!-- Guest: show sign-in required message, no PII -->
+<div class="sl-queue-wrapper sl-auth-required-wrapper">
+  <div class="sl-auth-required-card">
+    <div class="sl-auth-icon">🔐</div>
+    <h1 class="sl-page-title">Staff sign-in required</h1>
+    <p class="sl-page-subtitle">Staff sign-in required to view Command Centre.</p>
+    <p>This is the SmartLife Command Centre internal view. It contains aggregate onboarding, conversion and campaign performance dashboards.</p>
+    <p>Please sign in with your NSSF staff credentials and return to this page.</p>
+    <a href="/login?redirect-to=/smartlife-command-centre" class="sl-btn-primary sl-auth-btn">Sign in to continue</a>
+    <p class="sl-auth-note">If you do not have a staff account, contact your system administrator.</p>
+  </div>
+</div>
+
+{% else %}
+<!-- Signed in: show full Command Centre dashboard -->
+<div class="sl-queue-wrapper">
+  <h1 class="sl-page-title">SmartLife Command Centre</h1>
+  <p class="sl-page-subtitle">Aggregate Performance Dashboard &mdash; Zero Customer PII Exposed</p>
+
+  <!-- Summary strip -->
+  <section class="sl-queue-section">
+    <h2 class="sl-section-heading">Funnel Summary Metrics</h2>
+    <div class="sl-metric-grid" id="sl-summary-grid">
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-total">—</div><div class="sl-metric-label">Total Leads</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-details">—</div><div class="sl-metric-label">Details Completed</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-projections">—</div><div class="sl-metric-label">Projections Viewed</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-checkout">—</div><div class="sl-metric-label">Checkout Started</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-pending">—</div><div class="sl-metric-label">Payment Pending</div></div>
+      <div class="sl-metric-card sl-metric-success"><div class="sl-metric-value" id="cc-completed">—</div><div class="sl-metric-label">Payment Completed</div></div>
+      <div class="sl-metric-card sl-metric-hot"><div class="sl-metric-value" id="cc-conversion">—</div><div class="sl-metric-label">Conversion Rate</div></div>
+    </div>
+  </section>
+
+  <!-- Staff follow-up queue summary -->
+  <section class="sl-queue-section">
+    <h2 class="sl-section-heading">Staff Follow-Up Queue Summary</h2>
+    <div class="sl-metric-grid" id="sl-staff-grid">
+      <div class="sl-metric-card sl-metric-warm"><div class="sl-metric-value" id="cc-staff-req">—</div><div class="sl-metric-label">Follow-Up Required</div></div>
+      <div class="sl-metric-card"><div class="sl-metric-value" id="cc-staff-unassigned">—</div><div class="sl-metric-label">Unassigned</div></div>
+      <div class="sl-metric-card sl-metric-hot"><div class="sl-metric-value" id="cc-staff-overdue">—</div><div class="sl-metric-label">Overdue Follow-Up</div></div>
+    </div>
+  </section>
+
+  <!-- Side-by-side distributions and funnel -->
+  <div class="sl-metrics-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- Conversion Funnel stages -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Conversion Funnel</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Active Count</th>
+            <th>% of Total</th>
+          </tr>
+        </thead>
+        <tbody id="cc-funnel-tbody">
+          <tr><td colspan="3" class="sl-queue-empty">Loading funnel data…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Drop-off by Stage -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Drop-off Point Analysis</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Drop-off Step</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-dropoff-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading drop-off data…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="sl-metrics-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- Saver Type distribution -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Saver Type Mix (Segment)</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Saver Type</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-segment-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading segments…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Goal distribution -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Savings Goals</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Goal</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-goal-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading goals…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="sl-metrics-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- Age Band distribution -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Age Band Distribution</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Age Band</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-age-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading age bands…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Preferred Contact Channel -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Preferred Contact Channel</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-channel-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading channels…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="sl-metrics-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+    <!-- Campaign Source -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Campaign Source Performance</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Campaign Source</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-campaign-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading campaigns…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Birth Month Distribution -->
+    <section class="sl-queue-section">
+      <h2 class="sl-section-heading">Birth Month Distribution</h2>
+      <table class="sl-queue-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="cc-birth-tbody">
+          <tr><td colspan="2" class="sl-queue-empty">Loading birth months…</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+</div>
+{% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  {% if is_guest %}
+  return;
+  {% endif %}
+
+  // Load summary metrics
+  frappe.call({
+    method: "nssf_smart_savers.api.get_command_centre_summary",
+    callback: function(r) {
+      if (r.message) {
+        var s = r.message;
+        document.getElementById("cc-total").innerText = s.total || 0;
+        document.getElementById("cc-details").innerText = s.personal_details || 0;
+        document.getElementById("cc-projections").innerText = s.projections_viewed || 0;
+        document.getElementById("cc-checkout").innerText = s.checkout_started || 0;
+        document.getElementById("cc-pending").innerText = s.payment_pending || 0;
+        document.getElementById("cc-completed").innerText = s.payment_completed || 0;
+        document.getElementById("cc-conversion").innerText = (s.conversion_rate || 0).toFixed(1) + "%";
+
+        document.getElementById("cc-staff-req").innerText = s.staff_followup_required || 0;
+        document.getElementById("cc-staff-unassigned").innerText = s.unassigned || 0;
+        document.getElementById("cc-staff-overdue").innerText = s.overdue || 0;
+      }
+    }
+  });
+
+  // Load Funnel
+  frappe.call({
+    method: "nssf_smart_savers.api.get_conversion_funnel",
+    callback: function(r) {
+      if (r.message && r.message.stages) {
+        var html = "";
+        r.message.stages.forEach(function(stg) {
+          html += "<tr><td><strong>" + stg.stage + "</strong></td><td>" + stg.count + "</td><td>" + stg.pct_of_total.toFixed(1) + "%</td></tr>";
+        });
+        document.getElementById("cc-funnel-tbody").innerHTML = html;
+      }
+    }
+  });
+
+  // Load Drop-off analysis
+  frappe.call({
+    method: "nssf_smart_savers.api.get_dropoff_by_stage",
+    callback: function(r) {
+      if (r.message && r.message.by_stage) {
+        var html = "";
+        for (var step in r.message.by_stage) {
+          html += "<tr><td>" + step + "</td><td>" + r.message.by_stage[step] + "</td></tr>";
+        }
+        if (!html) {
+          html = "<tr><td colspan='2' class='sl-queue-empty'>No drop-offs recorded</td></tr>";
+        }
+        document.getElementById("cc-dropoff-tbody").innerHTML = html;
+      }
+    }
+  });
+
+  // Load Lead Distributions
+  var dims = ["segment", "goal", "age_band", "preferred_contact_channel"];
+  dims.forEach(function(dim) {
+    frappe.call({
+      method: "nssf_smart_savers.api.get_lead_distribution",
+      args: { dimension: dim },
+      callback: function(r) {
+        if (r.message && r.message.distribution) {
+          var html = "";
+          for (var val in r.message.distribution) {
+            var displayVal = val || "(Not Set)";
+            html += "<tr><td>" + displayVal + "</td><td>" + r.message.distribution[val] + "</td></tr>";
+          }
+          if (!html) {
+            html = "<tr><td colspan='2' class='sl-queue-empty'>No data available</td></tr>";
+          }
+          document.getElementById("cc-" + dim.replace(/_/g, "") + "-tbody").innerHTML = html;
+        }
+      }
+    });
+  });
+
+  // Load Campaign Performance
+  frappe.call({
+    method: "nssf_smart_savers.api.get_campaign_performance",
+    callback: function(r) {
+      if (r.message && r.message.by_source) {
+        var html = "";
+        for (var src in r.message.by_source) {
+          var displaySrc = src || "(Organic / Direct)";
+          html += "<tr><td>" + displaySrc + "</td><td>" + r.message.by_source[src] + "</td></tr>";
+        }
+        if (!html) {
+          html = "<tr><td colspan='2' class='sl-queue-empty'>No campaigns tracked</td></tr>";
+        }
+        document.getElementById("cc-campaign-tbody").innerHTML = html;
+      }
+    }
+  });
+
+  // Load Birth Month Distribution
+  var monthNames = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  frappe.call({
+    method: "nssf_smart_savers.api.get_birth_month_distribution",
+    callback: function(r) {
+      if (r.message && r.message.months) {
+        var html = "";
+        for (var m = 1; m <= 12; m++) {
+          var count = r.message.months[m] || 0;
+          html += "<tr><td>" + monthNames[m] + "</td><td>" + count + "</td></tr>";
+        }
+        document.getElementById("cc-birth-tbody").innerHTML = html;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
