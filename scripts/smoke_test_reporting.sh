@@ -58,6 +58,7 @@ check_not 'Implementation plan does not claim production ready' grep -qi 'produc
 check 'Strategy doc defines small-count suppression' grep -qi 'small-count suppression' "$APP_DIR/docs/smartlife_reporting_charts_strategy.md"
 check 'Implementation plan details Option D' grep -q 'Option D' "$APP_DIR/docs/smartlife_reporting_implementation_plan.md"
 check 'Reporting status is blueprint complete' grep -q 'Reporting enhancement blueprint complete / implementation pending' "$APP_DIR/docs/reporting_local_execution_notes.md"
+check_not 'No unsupported open/click-rate wording' grep -rn "Retire templates showing low open/click rates" "$APP_DIR/docs/smartlife_personalisation_manager_reporting_pack.md"
 
 echo ''
 echo '── Existing UI & Code Protection Checks ──'

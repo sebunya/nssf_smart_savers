@@ -58,7 +58,7 @@ This diagnostic reporting pack is designed for the SmartLife Personalisation Man
 
 ## 5. Communication and Template Performance
 - **Business Question**: Which email/SMS reminder templates yield the highest payment recovery?
-- **Action**: Retire templates showing low open/click rates.
+- **Action**: Template performance should initially use send, simulated, failed and suppressed counts. Open-rate and click-through metrics should be added later only after tagged links, event tracking and approved measurement instrumentation are implemented.
 - **Recommended Chart Type**: Grouped Column.
 - **Data Source**: `SmartLife Communication Log` linked to `SmartLife Contribution Intent`
 - **Formula**: `Recovery Rate = (Completed Intents within 48h of template receipt) / (Total template dispatches) * 100`
