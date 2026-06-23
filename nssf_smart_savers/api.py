@@ -1505,3 +1505,160 @@ def get_birth_month_distribution():
     }
 
 
+# ── Phase 6 Support & Helpdesk APIs ──────────────────────────────────────────
+
+@frappe.whitelist(allow_guest=True)
+def create_support_request(session_id, support_category, message, preferred_contact_channel=""):
+    """
+    Submit a support query. Guest accessible.
+    PII risk: None. Returns reference request_name only.
+    """
+    # Sanitise inputs
+    session_id = sanitise_demo_text(str(session_id or ""), 40)
+    support_category = sanitise_demo_text(str(support_category or ""), 50)
+    message = sanitise_demo_text(str(message or ""), 500)
+    preferred_contact_channel = sanitise_demo_text(str(preferred_contact_channel or "SMS"), 20)
+
+    # Safety checks
+    _check_pii(message, session_id)
+
+    # Link lead by session_id lookup
+    lead_name = None
+    consent_snapshot = 0
+    if session_id:
+        leads = frappe.get_all(
+            "SmartLife Demo Lead",
+            filters={"session_id": session_id},
+            fields=["name", "consent_to_contact"],
+            limit=1
+        )
+        if leads:
+            lead_name = leads[0].name
+            consent_snapshot = int(leads[0].consent_to_contact or 0)
+
+    # Create SmartLife Support Request
+    doc = frappe.get_doc({
+        "doctype": "SmartLife Support Request",
+        "lead": lead_name,
+        "session_id": session_id,
+        "support_category": support_category,
+        "preferred_contact_channel": preferred_contact_channel,
+        "message": message,
+        "status": "New",
+        "created_on": datetime.now(),
+        "consent_snapshot": consent_snapshot,
+        "demo_mode": 1
+    })
+    doc.insert(ignore_permissions=True)
+
+    # Call optional Helpdesk integration safely
+    try:
+        from nssf_smart_savers.integrations.helpdesk_adapter import create_demo_support_ticket
+        # Format description payload
+        desc = f"Category: {support_category}\nChannel: {preferred_contact_channel}\nMessage: {message}"
+        create_demo_support_ticket(
+            subject=f"SmartLife Support - {support_category}",
+            description=desc,
+            demo_context={
+                "journey_type": "support",
+                "session_id": session_id
+            }
+        )
+    except Exception:
+        pass  # Silently skip if helpdesk integration fails or not installed
+
+    return {
+        "success": True,
+        "request_name": doc.name,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def get_support_requests(status=None, limit=50):
+    """
+    Staff view of support request queue. Authenticated staff only.
+    PII risk: None. Returns safe fields only (no notes or messages).
+    """
+    _require_authenticated_staff()
+
+    filters = {}
+    if status:
+        filters["status"] = sanitise_demo_text(str(status), 20)
+
+    try:
+        requests = frappe.get_all(
+            "SmartLife Support Request",
+            filters=filters,
+            fields=["name", "support_category", "status", "assigned_staff", "created_on"],
+            limit=_safe_int(limit, 50),
+            order_by="creation desc"
+        )
+    except Exception:
+        requests = []
+
+    return {
+        "requests": requests,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def assign_support_request(request_name, staff_name):
+    """
+    Assign a support request to a staff member. Authenticated staff only.
+    """
+    _require_authenticated_staff()
+
+    request_name = sanitise_demo_text(str(request_name), 50)
+    staff_name = sanitise_demo_text(str(staff_name), 100)
+
+    doc = frappe.get_doc("SmartLife Support Request", request_name)
+    doc.assigned_staff = staff_name
+    doc.status = "Assigned"
+    doc.save(ignore_permissions=True)
+
+    return {
+        "success": True,
+        "request_name": doc.name,
+        "status": doc.status,
+        "assigned_staff": doc.assigned_staff,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+@frappe.whitelist()
+def update_support_status(request_name, new_status, resolution_notes=""):
+    """
+    Update support status and resolution notes. Authenticated staff only.
+    """
+    _require_authenticated_staff()
+
+    request_name = sanitise_demo_text(str(request_name), 50)
+    new_status = sanitise_demo_text(str(new_status), 20)
+    resolution_notes = sanitise_demo_text(str(resolution_notes or ""), 500)
+
+    # Validate status options
+    allowed_statuses = {"New", "Assigned", "In Progress", "Resolved", "Closed"}
+    if new_status not in allowed_statuses:
+        frappe.throw("Invalid status transition.")
+
+    doc = frappe.get_doc("SmartLife Support Request", request_name)
+    doc.status = new_status
+    if resolution_notes:
+        doc.resolution_notes = resolution_notes
+
+    if new_status in ["Resolved", "Closed"]:
+        doc.resolved_on = datetime.now()
+
+    doc.save(ignore_permissions=True)
+
+    return {
+        "success": True,
+        "request_name": doc.name,
+        "status": doc.status,
+        "demo_notice": DEMO_NOTICE
+    }
+
+
+

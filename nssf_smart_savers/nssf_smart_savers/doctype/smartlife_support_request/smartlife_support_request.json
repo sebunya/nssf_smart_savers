@@ -1,0 +1,137 @@
+{
+  "name": "SmartLife Support Request",
+  "module": "Nssf Smart Savers",
+  "autoname": "format:SL-SUPPORT-{YYYY}-{#####}",
+  "naming_rule": "Expression (using Jinja)",
+  "sort_field": "creation",
+  "sort_order": "DESC",
+  "owner": "Administrator",
+  "modified_by": "Administrator",
+  "creation": "2026-06-23 00:00:00.000000",
+  "modified": "2026-06-23 00:00:00.000000",
+  "engine": "InnoDB",
+  "is_submittable": 0,
+  "issingle": 0,
+  "istable": 0,
+  "editable_grid": 0,
+  "in_create": 0,
+  "max_attachments": 0,
+  "quick_entry": 0,
+  "track_changes": 1,
+  "track_seen": 0,
+  "track_views": 0,
+  "doctype": "DocType",
+  "actions": [],
+  "fields": [
+    {
+      "fieldname": "lead",
+      "fieldtype": "Link",
+      "label": "Lead",
+      "options": "SmartLife Demo Lead"
+    },
+    {
+      "fieldname": "session_id",
+      "fieldtype": "Data",
+      "label": "Session ID"
+    },
+    {
+      "fieldname": "support_category",
+      "fieldtype": "Select",
+      "label": "Support Category",
+      "options": "\nI need help joining SmartLife Flexi\nI need help understanding projections\nI need help making a contribution\nI am already an NSSF member\nI am in the diaspora\nI want staff to call me\nOther",
+      "reqd": 1
+    },
+    {
+      "fieldname": "preferred_contact_channel",
+      "fieldtype": "Select",
+      "label": "Preferred Contact Channel",
+      "options": "\nSMS\nEmail\nPhone call",
+      "default": "SMS"
+    },
+    {
+      "fieldname": "message",
+      "fieldtype": "Small Text",
+      "label": "Message",
+      "description": "Max 500 characters - sanitised."
+    },
+    {
+      "fieldname": "status",
+      "fieldtype": "Select",
+      "label": "Status",
+      "options": "\nNew\nAssigned\nIn Progress\nResolved\nClosed",
+      "default": "New",
+      "reqd": 1
+    },
+    {
+      "fieldname": "assigned_staff",
+      "fieldtype": "Data",
+      "label": "Assigned Staff"
+    },
+    {
+      "fieldname": "created_on",
+      "fieldtype": "Datetime",
+      "label": "Created On"
+    },
+    {
+      "fieldname": "resolved_on",
+      "fieldtype": "Datetime",
+      "label": "Resolved On"
+    },
+    {
+      "fieldname": "resolution_notes",
+      "fieldtype": "Small Text",
+      "label": "Resolution Notes",
+      "description": "Internal notes only. Never exposed in public APIs or analytics."
+    },
+    {
+      "fieldname": "consent_snapshot",
+      "fieldtype": "Check",
+      "label": "Consent Snapshot",
+      "default": "0"
+    },
+    {
+      "fieldname": "demo_mode",
+      "fieldtype": "Check",
+      "label": "Demo Mode",
+      "default": "1"
+    }
+  ],
+  "permissions": [
+    {
+      "role": "SmartLife Personalisation Team",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "email": 0,
+      "export": 0,
+      "print": 0,
+      "report": 0,
+      "share": 0
+    },
+    {
+      "role": "NSSF Staff",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 0,
+      "email": 0,
+      "export": 0,
+      "print": 0,
+      "report": 0,
+      "share": 0
+    },
+    {
+      "role": "System Manager",
+      "read": 1,
+      "write": 1,
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "report": 1,
+      "share": 1
+    }
+  ]
+}

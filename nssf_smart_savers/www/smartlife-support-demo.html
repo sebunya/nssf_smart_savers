@@ -4,9 +4,9 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-brand-dob-ui-20260622">
-<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-brand-dob-ui-20260622"></script>
-<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-brand-dob-ui-20260622"></script>
+<link rel="stylesheet" href="/assets/nssf_smart_savers/css/smartlife.css?v=nssf-support-demo-20260623">
+<script defer src="/assets/nssf_smart_savers/js/analytics_helper.js?v=nssf-support-demo-20260623"></script>
+<script defer src="/assets/nssf_smart_savers/js/smartlife.js?v=nssf-support-demo-20260623"></script>
 {% include "nssf_smart_savers/templates/includes/smartlife_brand_shell.html" %}
 <script>document.documentElement.classList.add('sl-demo-route')</script>
 
@@ -24,8 +24,8 @@
 </div>
 
 <div class="smartlife-support-wrapper">
-  <h1>SmartLife Flexi — Demo Support</h1>
-  <p style="color:#555;margin-bottom:24px">Submit a support query or browse FAQs. This is a demo — no real ticket system is connected.</p>
+  <h1>SmartLife Flexi — Support Request</h1>
+  <p style="color:#555;margin-bottom:24px">Submit a support query. This is a demo — no real ticket system is connected.</p>
 
   <div class="sl-support-form-section">
     <h2>Submit a Query</h2>
@@ -33,30 +33,44 @@
       <div class="sl-form-row">
         <label for="sq-topic" class="sl-label">Topic</label>
         <select id="sq-topic" class="sl-select">
-          <option value="how_to_start">How to start saving</option>
-          <option value="payment_issue">Payment / contribution issue</option>
-          <option value="account_access">Account access</option>
-          <option value="plan_change">Change my plan</option>
-          <option value="withdrawal">Withdrawal / access funds</option>
-          <option value="other">Other</option>
+          <option value="I need help joining SmartLife Flexi">I need help joining SmartLife Flexi</option>
+          <option value="I need help understanding projections">I need help understanding projections</option>
+          <option value="I need help making a contribution">I need help making a contribution</option>
+          <option value="I am already an NSSF member">I am already an NSSF member</option>
+          <option value="I am in the diaspora">I am in the diaspora</option>
+          <option value="I want staff to call me">I want staff to call me</option>
+          <option value="Other">Other</option>
         </select>
       </div>
+
+      <div class="sl-form-row">
+        <label for="sq-channel" class="sl-label">Preferred Contact Channel</label>
+        <select id="sq-channel" class="sl-select">
+          <option value="SMS">SMS</option>
+          <option value="Email">Email</option>
+          <option value="Phone call">Phone call</option>
+        </select>
+      </div>
+
       <div class="sl-form-row">
         <label for="sq-message" class="sl-label">Message (no personal details)</label>
         <textarea id="sq-message" class="sl-input" rows="4" placeholder="Describe your query (demo only — no real data)" maxlength="500" style="resize:vertical"></textarea>
       </div>
+      
       <div class="sl-step-actions">
         <button type="button" class="sl-btn-primary" onclick="SLSupport.submit()">Submit Query (Demo)</button>
       </div>
     </form>
-    <div class="sl-support-result" id="sl-support-result" style="display:none">
+    
+    <div class="sl-support-result" id="sl-support-result" style="display:none; text-align: center; padding: 24px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; margin-top: 16px;">
       <div style="font-size:24px;margin-bottom:8px">✅</div>
-      <strong>Query received (demo)</strong>
+      <strong style="font-size:18px;color:#2e7d32">Query Received</strong>
+      <p style="margin-top:12px">Support Reference: <strong id="support-ref-id" style="font-family:monospace; background:#e0e0e0; padding:2px 6px; border-radius:4px">SL-SUPPORT-2026-XXXXX</strong></p>
       <p style="color:#555;font-size:14px;margin-top:8px">In a real system, a support agent would respond within 24 hours.</p>
     </div>
   </div>
 
-  <div class="sl-faq-section">
+  <div class="sl-faq-section" style="margin-top: 32px;">
     <h2>Frequently Asked Questions</h2>
 
     <div class="sl-faq-item">
@@ -73,16 +87,6 @@
       <div class="sl-faq-question" onclick="SLSupport.toggleFaq(this)">Do I need to be an NSSF member?</div>
       <div class="sl-faq-answer">You can join NSSF as a voluntary member at any time. SmartLife Flexi is available to all voluntary members.</div>
     </div>
-
-    <div class="sl-faq-item">
-      <div class="sl-faq-question" onclick="SLSupport.toggleFaq(this)">How is the 10% return calculated?</div>
-      <div class="sl-faq-answer">The 10% is an indicative annual return for demo purposes only. Actual returns are subject to NSSF fund performance and are not guaranteed.</div>
-    </div>
-
-    <div class="sl-faq-item">
-      <div class="sl-faq-question" onclick="SLSupport.toggleFaq(this)">How do I pay?</div>
-      <div class="sl-faq-answer">Payment methods include Mobile Money (MTN, Airtel), bank transfer, and employer payroll deductions.</div>
-    </div>
   </div>
 
   <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
@@ -95,14 +99,36 @@
 window.SLSupport = {
   submit: function() {
     var topic = document.getElementById('sq-topic') && document.getElementById('sq-topic').value;
+    var channel = document.getElementById('sq-channel') && document.getElementById('sq-channel').value;
     var message = document.getElementById('sq-message') && document.getElementById('sq-message').value;
     if (!message || message.trim().length < 3) {
       alert('Please enter a message.');
       return;
     }
-    document.getElementById('sl-support-form').style.display = 'none';
-    document.getElementById('sl-support-result').style.display = 'block';
-    if (window.SmartLifeAnalytics) SmartLifeAnalytics.push('sl_support_submitted', { step_name: 'support_demo' });
+    
+    // Retrieve session_id
+    var session_id = localStorage.getItem('smartlife_session_id') || "";
+    
+    // Call create_support_request API
+    frappe.call({
+      method: "nssf_smart_savers.api.create_support_request",
+      args: {
+        session_id: session_id,
+        support_category: topic,
+        message: message,
+        preferred_contact_channel: channel
+      },
+      callback: function(r) {
+        if (r.message && r.message.success) {
+          document.getElementById('support-ref-id').innerText = r.message.request_name;
+          document.getElementById('sl-support-form').style.display = 'none';
+          document.getElementById('sl-support-result').style.display = 'block';
+          if (window.SmartLifeAnalytics) SmartLifeAnalytics.push('sl_support_submitted', { step_name: 'support_demo', ref_id: r.message.request_name });
+        } else {
+          alert('Failed to submit support request. Please try again.');
+        }
+      }
+    });
   },
   toggleFaq: function(el) {
     var answer = el.nextElementSibling;
