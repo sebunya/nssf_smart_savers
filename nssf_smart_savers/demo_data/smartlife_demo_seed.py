@@ -556,7 +556,7 @@ def seed_demo_data():
                 doc = frappe.get_doc(lead_data)
                 doc.insert(ignore_permissions=True)
                 if doc.name != lead_name:
-                    frappe.rename_doc("SmartLife Demo Lead", doc.name, lead_name, force=True, ignore_permissions=True)
+                    frappe.rename_doc("SmartLife Demo Lead", doc.name, lead_name, force=True)
                     doc.name = lead_name
                 summary["leads_created"] += 1
 
